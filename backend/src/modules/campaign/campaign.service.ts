@@ -1,57 +1,36 @@
-import prisma from '@lib/prisma.js';
 import { AppError } from '@shared/errors/AppError.js';
 import { CreateCampaignInput, UpdateCampaignInput } from './campaign.schema.js';
+import { CampaignRepository } from './campaign.repository.js';
+import { toCampaignDTO, CampaignDTO } from './campaign.mapper.js';
 
-export async function listCampaigns() {
-  return prisma.campaign.findMany({
-    include: { missions: true },
-    orderBy: { createdAt: 'desc' },
-  });
-}
+export class CampaignService {
+  constructor(private readonly repo: CampaignRepository) {}
 
-export async function listActiveCampaigns() {
-  return prisma.campaign.findMany({
-    where: { status: 'ACTIVE' },
-    include: { missions: true },
-    orderBy: { createdAt: 'desc' },
-  });
-}
+  async list(): Promise<CampaignDTO[]> {
+    return (await this.repo.findAll()).map(toCampaignDTO);
+  }
 
-export async function getCampaignById(id: number) {
-  const campaign = await prisma.campaign.findUnique({
-    where: { id },
-    include: { missions: true },
-  });
-  if (!campaign) throw new AppError('Campaign not found', 404);
-  return campaign;
-}
+  async listActive(): Promise<CampaignDTO[]> {
+    return (await this.repo.findActive()).map(toCampaignDTO);
+  }
 
-export async function createCampaign(input: CreateCampaignInput) {
-  return prisma.campaign.create({
-    data: {
-      title: input.title,
-      description: input.description,
-      startDate: input.startDate ? new Date(input.startDate) : undefined,
-      endDate: input.endDate ? new Date(input.endDate) : undefined,
-    },
-    include: { missions: true },
-  });
-}
+  async getById(id: number): Promise<CampaignDTO> {
+    const campaign = await this.repo.findById(id);
+    if (!campaign) throw new AppError('Campaign not found', 404);
+    return toCampaignDTO(campaign);
+  }
 
-export async function updateCampaign(id: number, input: UpdateCampaignInput) {
-  await getCampaignById(id);
-  return prisma.campaign.update({
-    where: { id },
-    data: {
-      ...input,
-      startDate: input.startDate ? new Date(input.startDate) : undefined,
-      endDate: input.endDate ? new Date(input.endDate) : undefined,
-    },
-    include: { missions: true },
-  });
-}
+  async create(input: CreateCampaignInput): Promise<CampaignDTO> {
+    return toCampaignDTO(await this.repo.create(input));
+  }
 
-export async function deleteCampaign(id: number) {
-  await getCampaignById(id);
-  await prisma.campaign.delete({ where: { id } });
+  async update(id: number, input: UpdateCampaignInput): Promise<CampaignDTO> {
+    await this.getById(id); // 404 guard
+    return toCampaignDTO(await this.repo.update(id, input));
+  }
+
+  async delete(id: number): Promise<void> {
+    await this.getById(id); // 404 guard
+    await this.repo.delete(id);
+  }
 }

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Megaphone, Trophy, Zap, LogOut } from "lucide-react";
+import { LayoutDashboard, Megaphone, Trophy, LogOut, Gift, Users, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { clearAuth, getStoredUser } from "@/lib/auth";
+import { clearAuth, useStoredUser } from "@/lib/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -13,12 +14,15 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/campaigns", label: "Campaigns", icon: Megaphone },
   { href: "/missions", label: "Missions", icon: Trophy },
+  { href: "/reward-store", label: "Reward Store", icon: Gift },
+  { href: "/tiers", label: "Tiers", icon: Layers },
+  { href: "/user-management", label: "User Management", icon: Users },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const user = getStoredUser();
+  const user = useStoredUser();
 
   function handleLogout() {
     clearAuth();
@@ -37,11 +41,15 @@ export function Sidebar() {
   return (
     <aside className="flex h-screen w-60 flex-col border-r border-sidebar-border bg-sidebar">
       {/* Logo */}
-      <div className="flex h-14 items-center gap-2.5 px-4">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-brand text-brand-foreground">
-          <Zap className="h-4 w-4" />
-        </div>
-        <span className="text-sm font-semibold text-sidebar-foreground">Marketing Admin</span>
+      <div className="flex h-20 items-center px-4">
+        <Image
+          src="/web_logo.png"
+          alt="Luy Leun"
+          width={240}
+          height={80}
+          className="h-12 w-auto object-contain"
+          priority
+        />
       </div>
 
       <Separator className="bg-sidebar-border" />

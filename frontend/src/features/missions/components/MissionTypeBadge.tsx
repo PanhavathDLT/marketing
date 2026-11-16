@@ -1,14 +1,28 @@
 import { Badge } from "@/components/ui/badge";
 import type { MissionType } from "../types";
 
-const TYPE_MAP: Record<MissionType, { label: string; variant: "new" | "info" | "success" | "warning" }> = {
-  REFERRAL: { label: "Referral", variant: "new" },
-  FIRST_LOAN_APPLICATION: { label: "1st Application", variant: "info" },
-  FIRST_LOAN_APPROVAL: { label: "1st Approval", variant: "success" },
-  FIRST_REPAYMENT: { label: "1st Repayment", variant: "warning" },
+type BadgeVariant = "new" | "info" | "success" | "warning" | "secondary";
+
+const TYPE_MAP: Record<string, { label: string; variant: BadgeVariant }> = {
+  REFERRAL:               { label: "Referral",               variant: "new"     },
+  APPLICATION_SUBMISSION: { label: "Application Submission", variant: "info"    },
+  LOAN_APPROVAL:          { label: "Loan Approval",          variant: "success" },
+  REPAYMENT:              { label: "Repayment",              variant: "warning" },
+  COMPLETE_FORM1:         { label: "Complete Form 1",        variant: "info"    },
+  COMPLETE_FORM2:         { label: "Complete Form 2",        variant: "info"    },
+  COMPLETE_FORM3:         { label: "Complete Form 3",        variant: "info"    },
+  COMPLETE_FORM4:         { label: "Complete Form 4",        variant: "info"    },
 };
 
+function formatLabel(type: string): string {
+  return type
+    .split("_")
+    .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+    .join(" ");
+}
+
 export function MissionTypeBadge({ type }: { type: MissionType }) {
-  const { label, variant } = TYPE_MAP[type];
-  return <Badge variant={variant}>{label}</Badge>;
+  const entry = TYPE_MAP[type];
+  if (entry) return <Badge variant={entry.variant}>{entry.label}</Badge>;
+  return <Badge variant="secondary">{formatLabel(type)}</Badge>;
 }

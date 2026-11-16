@@ -1,59 +1,36 @@
-import prisma from '@lib/prisma.js';
+import { AnalyticsRepository } from './analytics.repository.js';
 
-export async function getOverview() {
-  const [totalCustomers, totalCampaigns, totalRedemptions, totalPointsIssued] = await Promise.all([
-    prisma.user.count({ where: { role: 'CUSTOMER' } }),
-    prisma.campaign.count(),
-    prisma.redemption.count(),
-    prisma.pointsHistory.aggregate({
-      _sum: { points: true },
-      where: { points: { gt: 0 } },
-    }),
-  ]);
+export class AnalyticsService {
+  constructor(private readonly repo: AnalyticsRepository) {}
 
-  return {
-    totalCustomers,
-    totalCampaigns,
-    totalRedemptions,
-    totalPointsIssued: totalPointsIssued._sum.points ?? 0,
-  };
-}
+  async getOverview() {
+    const stats = await this.repo.getOverviewStats();
+    return {
+      totalCustomers: stats.totalCustomers,
+      totalCampaigns: stats.totalCampaigns,
+      totalRedemptions: stats.totalRedemptions,
+      totalPointsIssued: stats.totalPointsIssued._sum.points ?? 0,
+    };
+  }
 
-export async function getCampaignStats(campaignId: number) {
-  const campaign = await prisma.campaign.findUnique({
-    where: { id: campaignId },
-    include: { missions: true },
-  });
+  async getCampaignStats(campaignId: number) {
+    const campaign = await this.repo.getCampaignWithMissions(campaignId);
+    if (!campaign) return null;
 
-  if (!campaign) return null;
+    const missionIds = campaign.missions.map((m) => m.id);
+    const [participants, claimedCount] = await this.repo.getCampaignMissionStats(missionIds);
 
-  const missionIds = campaign.missions.map((m) => m.id);
+    return {
+      campaign,
+      totalParticipants: participants.length,
+      totalClaimedMissions: claimedCount,
+    };
+  }
 
-  const [totalParticipants, claimedCount] = await Promise.all([
-    prisma.customerMission.groupBy({
-      by: ['customerId'],
-      where: { missionId: { in: missionIds } },
-    }),
-    prisma.customerMission.count({
-      where: { missionId: { in: missionIds }, status: 'CLAIMED' },
-    }),
-  ]);
-
-  return {
-    campaign,
-    totalParticipants: totalParticipants.length,
-    totalClaimedMissions: claimedCount,
-  };
-}
-
-export async function getCheckInStats() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const [totalToday, totalAllTime] = await Promise.all([
-    prisma.checkIn.count({ where: { createdAt: { gte: today } } }),
-    prisma.checkIn.count(),
-  ]);
-
-  return { totalToday, totalAllTime };
+  async getCheckInStats() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const [totalToday, totalAllTime] = await this.repo.getCheckInCounts(today);
+    return { totalToday, totalAllTime };
+  }
 }

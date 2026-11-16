@@ -1,89 +1,64 @@
-import prisma from '@lib/prisma.js';
 import { AppError } from '@shared/errors/AppError.js';
-import { MissionType, MissionStatus } from '@prisma/client';
 import { CreateMissionInput, UpdateMissionInput } from './mission.schema.js';
+import { MissionRepository } from './mission.repository.js';
+import { toMissionDTO, toCustomerMissionDTO, MissionDTO, CustomerMissionDTO } from './mission.mapper.js';
+import { TierRepository, resolveTierName } from '@modules/tier/index.js';
 
-export async function getMissionById(id: number) {
-  const mission = await prisma.mission.findUnique({ where: { id } });
-  if (!mission) throw new AppError('Mission not found', 404);
-  return mission;
-}
+export class MissionService {
+  constructor(
+    private readonly repo: MissionRepository,
+    private readonly tierRepo: TierRepository,
+  ) {}
 
-export async function getMissionsForCampaign(campaignId: number) {
-  return prisma.mission.findMany({
-    where: { campaignId },
-    orderBy: { createdAt: 'asc' },
-  });
-}
-
-export async function createMission(input: CreateMissionInput) {
-  return prisma.mission.create({ data: input });
-}
-
-export async function updateMission(id: number, input: UpdateMissionInput) {
-  await getMissionById(id);
-  return prisma.mission.update({ where: { id }, data: input });
-}
-
-export async function deleteMission(id: number) {
-  await getMissionById(id);
-  await prisma.mission.delete({ where: { id } });
-}
-
-// ─── Customer-facing ──────────────────────────────────────────────────────────
-
-export async function getCustomerMissions(customerId: number) {
-  // Get all missions from ACTIVE campaigns
-  const missions = await prisma.mission.findMany({
-    where: { campaign: { status: 'ACTIVE' } },
-    orderBy: { createdAt: 'asc' },
-  });
-
-  // Get this customer's progress for all missions
-  const customerMissions = await prisma.customerMission.findMany({
-    where: { customerId },
-  });
-
-  const progressMap = new Map(customerMissions.map((cm) => [cm.missionId, cm.status]));
-
-  return missions.map((m) => ({
-    id: m.id,
-    type: m.type as MissionType,
-    title: m.title,
-    points: m.points,
-    iconUrl: m.iconUrl,
-    status: (progressMap.get(m.id) ?? 'IN_PROGRESS') as MissionStatus,
-  }));
-}
-
-export async function claimMission(customerId: number, missionId: number) {
-  const mission = await getMissionById(missionId);
-
-  const customerMission = await prisma.customerMission.findUnique({
-    where: { customerId_missionId: { customerId, missionId } },
-  });
-
-  if (!customerMission || customerMission.status !== 'CLAIMABLE') {
-    throw new AppError('Mission is not claimable', 409);
+  async getMissionsForCampaign(campaignId: number): Promise<MissionDTO[]> {
+    return (await this.repo.findByCampaignId(campaignId)).map(toMissionDTO);
   }
 
-  await prisma.$transaction([
-    prisma.customerMission.update({
-      where: { customerId_missionId: { customerId, missionId } },
-      data: { status: 'CLAIMED', claimedAt: new Date() },
-    }),
-    prisma.user.update({
-      where: { id: customerId },
-      data: { points: { increment: mission.points } },
-    }),
-    prisma.pointsHistory.create({
-      data: {
-        customerId,
-        source: 'MISSION',
-        missionType: mission.type,
-        title: mission.title,
-        points: mission.points,
-      },
-    }),
-  ]);
+  async create(input: CreateMissionInput): Promise<MissionDTO> {
+    return toMissionDTO(await this.repo.create(input));
+  }
+
+  async update(id: number, input: UpdateMissionInput): Promise<MissionDTO> {
+    const existing = await this.repo.findById(id);
+    if (!existing) throw new AppError('Mission not found', 404);
+    return toMissionDTO(await this.repo.update(id, input));
+  }
+
+  async delete(id: number): Promise<void> {
+    const existing = await this.repo.findById(id);
+    if (!existing) throw new AppError('Mission not found', 404);
+    await this.repo.delete(id);
+  }
+
+  async getCustomerMissions(customerId: number): Promise<CustomerMissionDTO[]> {
+    const [missions, customerMissions] = await Promise.all([
+      this.repo.findActiveMissions(),
+      this.repo.findCustomerMissions(customerId),
+    ]);
+
+    const progressMap = new Map(
+      customerMissions.map((cm) => [cm.missionId, { status: cm.status, progress: cm.progress }]),
+    );
+
+    return missions.map((m) => toCustomerMissionDTO(m, progressMap));
+  }
+
+  async claimMission(customerId: number, missionId: number): Promise<void> {
+    const mission = await this.repo.findById(missionId);
+    if (!mission) throw new AppError('Mission not found', 404);
+
+    const customerMission = await this.repo.findCustomerMission(customerId, missionId);
+    if (!customerMission || customerMission.status !== 'CLAIMABLE') {
+      throw new AppError('Mission is not claimable', 409);
+    }
+
+    const [user, tiers] = await Promise.all([
+      this.repo.findUser(customerId),
+      this.tierRepo.findAll(),
+    ]);
+    if (!user) throw new AppError('User not found', 404);
+    if (!user.customerProfile) throw new AppError('Customer profile not found', 404);
+    const newTier = resolveTierName(user.customerProfile.points + mission.points, tiers);
+    await this.repo.claimMission(customerId, mission, newTier);
+  }
 }

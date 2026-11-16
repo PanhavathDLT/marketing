@@ -1,22 +1,20 @@
 import { z } from 'zod';
 
-export const registerSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  phone: z.string().optional(),
-  referralCode: z.string().optional(),
-});
-
+// Admin dashboard login
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
+});
+
+// Mobile customer — LOS token exchange
+export const sessionSchema = z.object({
+  losToken: z.string().min(1),
 });
 
 export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1),
 });
 
-export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type SessionInput = z.infer<typeof sessionSchema>;
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;

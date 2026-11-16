@@ -1,57 +1,44 @@
 import { Request, Response, NextFunction } from 'express';
-import * as campaignService from './campaign.service.js';
 import { success } from '@shared/utils/response.js';
+import { CampaignService } from './campaign.service.js';
 
-export async function listCampaigns(req: Request, res: Response, next: NextFunction) {
-  try {
-    const data = await campaignService.listCampaigns();
-    success(res, data);
-  } catch (err) {
-    next(err);
-  }
-}
+export class CampaignController {
+  constructor(private readonly service: CampaignService) {}
 
-export async function listActiveCampaigns(req: Request, res: Response, next: NextFunction) {
-  try {
-    const data = await campaignService.listActiveCampaigns();
-    success(res, data);
-  } catch (err) {
-    next(err);
-  }
-}
+  list = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.service.list());
+    } catch (err) { next(err); }
+  };
 
-export async function getCampaign(req: Request, res: Response, next: NextFunction) {
-  try {
-    const data = await campaignService.getCampaignById(Number(req.params.id));
-    success(res, data);
-  } catch (err) {
-    next(err);
-  }
-}
+  listActive = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.service.listActive());
+    } catch (err) { next(err); }
+  };
 
-export async function createCampaign(req: Request, res: Response, next: NextFunction) {
-  try {
-    const data = await campaignService.createCampaign(req.body);
-    success(res, data, 201);
-  } catch (err) {
-    next(err);
-  }
-}
+  getById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.service.getById(Number(req.params.id)));
+    } catch (err) { next(err); }
+  };
 
-export async function updateCampaign(req: Request, res: Response, next: NextFunction) {
-  try {
-    const data = await campaignService.updateCampaign(Number(req.params.id), req.body);
-    success(res, data);
-  } catch (err) {
-    next(err);
-  }
-}
+  create = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.service.create(req.body), 201);
+    } catch (err) { next(err); }
+  };
 
-export async function deleteCampaign(req: Request, res: Response, next: NextFunction) {
-  try {
-    await campaignService.deleteCampaign(Number(req.params.id));
-    success(res, null);
-  } catch (err) {
-    next(err);
-  }
+  update = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.service.update(Number(req.params.id), req.body));
+    } catch (err) { next(err); }
+  };
+
+  delete = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await this.service.delete(Number(req.params.id));
+      success(res, null);
+    } catch (err) { next(err); }
+  };
 }

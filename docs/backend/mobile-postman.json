@@ -1,0 +1,350 @@
+{
+  "info": {
+    "name": "Marketing Backend — Mobile App",
+    "description": "Endpoints called by the Flutter mobile app.\n\nAuthentication:\n- Exchange your LOS token via POST /auth/session to get accessToken + refreshToken.\n- Set the accessToken as the {{accessToken}} collection variable.\n- When it expires, call POST /auth/refresh and update the variable.\n\nBase URL: http://localhost:3000/api/v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "REPLACE_AFTER_SESSION",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "REPLACE_AFTER_SESSION",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Auth",
+      "item": [
+        {
+          "name": "Exchange LOS token for session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/session",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "session"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"losToken\": \"<LOS_JWT_TOKEN>\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Exchange the LOS JWT (from the loan app) for a marketing session. Returns accessToken and refreshToken — save both as collection variables."
+          }
+        },
+        {
+          "name": "Refresh token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Exchange a refresh token for a new accessToken + refreshToken pair. Update collection variables after calling."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Reward & Points",
+      "item": [
+        {
+          "name": "Get points summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/reward/points",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "reward", "points"]
+            },
+            "description": "Returns current points, tier, next tier, and progress percentage."
+          }
+        },
+        {
+          "name": "Get points history",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/reward/points/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "reward", "points", "history"]
+            },
+            "description": "Returns a list of point transactions (earned from missions, spent on redemptions)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Check-in",
+      "item": [
+        {
+          "name": "Get check-in status",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/reward/check-in",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "reward", "check-in"]
+            },
+            "description": "Returns current streak, whether the customer can check in today, and the 7-day calendar."
+          }
+        },
+        {
+          "name": "Do check-in",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/reward/check-in",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "reward", "check-in"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Perform today's check-in. Returns 409 if already checked in today."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Missions",
+      "item": [
+        {
+          "name": "List my missions",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/reward/missions",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "reward", "missions"]
+            },
+            "description": "Returns all missions assigned to the customer with their progress and status (IN_PROGRESS, CLAIMABLE, CLAIMED)."
+          }
+        },
+        {
+          "name": "Claim mission reward",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/reward/missions/:missionId/claim",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "reward", "missions", ":missionId", "claim"],
+              "variable": [
+                { "key": "missionId", "value": "1", "description": "CustomerMission ID from list missions response" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Claim points for a CLAIMABLE mission. Returns 409 if mission is not in CLAIMABLE state."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Reward Store",
+      "item": [
+        {
+          "name": "Browse reward store",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/reward/store",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "reward", "store"]
+            },
+            "description": "Returns all available reward items with their point costs."
+          }
+        },
+        {
+          "name": "My redeemed rewards",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/reward/my-rewards",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "reward", "my-rewards"]
+            },
+            "description": "Returns the customer's redemption history with pickup status."
+          }
+        },
+        {
+          "name": "Redeem a reward",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "", "description": "Optional UUID to prevent duplicate redemptions on retry", "disabled": true }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/reward/store/:rewardId/redeem",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "reward", "store", ":rewardId", "redeem"],
+              "variable": [
+                { "key": "rewardId", "value": "101", "description": "Reward item ID from browse store response" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Redeem a reward item. Deducts points atomically. Returns 409 if out of stock, 422 if insufficient points."
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Referral",
+      "item": [
+        {
+          "name": "Get my referral code",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/referral/my-code",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "referral", "my-code"]
+            },
+            "description": "Returns the customer's unique referral code to share with friends."
+          }
+        },
+        {
+          "name": "Apply a referral code",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/referral/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "referral", "apply"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"LL7K2Q\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Link this customer to a referrer. Returns 404 if code not found, 409 if already linked, 422 if using own code."
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Campaigns",
+      "item": [
+        {
+          "name": "List active campaigns",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/campaigns",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "campaigns"]
+            },
+            "description": "Returns all ACTIVE campaigns with their missions."
+          }
+        },
+        {
+          "name": "Get campaign by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/campaigns/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "campaigns", ":id"],
+              "variable": [
+                { "key": "id", "value": "1", "description": "Campaign ID" }
+              ]
+            },
+            "description": "Returns a single campaign with its missions. Returns 404 if not found."
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Tiers",
+      "item": [
+        {
+          "name": "List all tiers",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/tiers",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "tiers"]
+            },
+            "description": "Returns all tiers with their minimum point thresholds. Use this to render the tier progress UI."
+          }
+        }
+      ]
+    }
+  ]
+}

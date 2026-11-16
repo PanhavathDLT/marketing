@@ -1,3 +1,5 @@
+import { useMemo, useSyncExternalStore } from "react";
+
 const ACCESS_TOKEN_KEY = "access_token";
 const REFRESH_TOKEN_KEY = "refresh_token";
 const USER_KEY = "user";
@@ -28,6 +30,29 @@ export function getStoredUser(): StoredUser | null {
   } catch {
     return null;
   }
+}
+
+// Hydration-safe: returns null on the server and during hydration, then the stored user.
+// The snapshot is the raw string so React can compare it by value between renders.
+function subscribeToUser(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  return () => window.removeEventListener("storage", onChange);
+}
+
+export function useStoredUser(): StoredUser | null {
+  const raw = useSyncExternalStore(
+    subscribeToUser,
+    () => localStorage.getItem(USER_KEY),
+    () => null,
+  );
+  return useMemo(() => {
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as StoredUser;
+    } catch {
+      return null;
+    }
+  }, [raw]);
 }
 
 export function setTokens(accessToken: string, refreshToken: string) {

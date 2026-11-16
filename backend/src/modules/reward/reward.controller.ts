@@ -1,116 +1,83 @@
 import { Request, Response, NextFunction } from 'express';
-import * as rewardService from './reward.service.js';
-import * as missionService from '@modules/mission/mission.service.js';
 import { success } from '@shared/utils/response.js';
 import { User } from '@prisma/client';
+import { RewardService } from './reward.service.js';
+import { MissionService } from '@modules/mission/mission.service.js';
 
-export async function getPoints(req: Request, res: Response, next: NextFunction) {
-  try {
-    const user = req.user as User;
-    const data = await rewardService.getPoints(user.id);
-    success(res, data);
-  } catch (err) {
-    next(err);
-  }
-}
+export class RewardController {
+  constructor(
+    private readonly rewardService: RewardService,
+    private readonly missionService: MissionService,
+  ) {}
 
-export async function getPointsHistory(req: Request, res: Response, next: NextFunction) {
-  try {
-    const user = req.user as User;
-    const data = await rewardService.getPointsHistory(user.id);
-    success(res, data);
-  } catch (err) {
-    next(err);
-  }
-}
+  getPoints = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.rewardService.getPoints((req.user as User).id));
+    } catch (err) { next(err); }
+  };
 
-export async function getCheckIn(req: Request, res: Response, next: NextFunction) {
-  try {
-    const user = req.user as User;
-    const data = await rewardService.getCheckIn(user.id);
-    success(res, data);
-  } catch (err) {
-    next(err);
-  }
-}
+  getPointsHistory = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.rewardService.getPointsHistory((req.user as User).id));
+    } catch (err) { next(err); }
+  };
 
-export async function checkIn(req: Request, res: Response, next: NextFunction) {
-  try {
-    const user = req.user as User;
-    await rewardService.checkIn(user.id);
-    success(res, {});
-  } catch (err) {
-    next(err);
-  }
-}
+  getCheckIn = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.rewardService.getCheckIn((req.user as User).id));
+    } catch (err) { next(err); }
+  };
 
-// Missions — /reward/missions
-export async function getCustomerMissions(req: Request, res: Response, next: NextFunction) {
-  try {
-    const user = req.user as User;
-    const data = await missionService.getCustomerMissions(user.id);
-    success(res, data);
-  } catch (err) {
-    next(err);
-  }
-}
+  checkIn = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await this.rewardService.checkIn((req.user as User).id);
+      success(res, {});
+    } catch (err) { next(err); }
+  };
 
-export async function claimMission(req: Request, res: Response, next: NextFunction) {
-  try {
-    const user = req.user as User;
-    await missionService.claimMission(user.id, Number(req.params.missionId));
-    success(res, {});
-  } catch (err) {
-    next(err);
-  }
-}
+  // Missions routed under /reward/missions
+  getCustomerMissions = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.missionService.getCustomerMissions((req.user as User).id));
+    } catch (err) { next(err); }
+  };
 
-export async function getStore(req: Request, res: Response, next: NextFunction) {
-  try {
-    const data = await rewardService.getStore();
-    success(res, data);
-  } catch (err) {
-    next(err);
-  }
-}
+  claimMission = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await this.missionService.claimMission((req.user as User).id, Number(req.params.missionId));
+      success(res, {});
+    } catch (err) { next(err); }
+  };
 
-export async function getMyRewards(req: Request, res: Response, next: NextFunction) {
-  try {
-    const user = req.user as User;
-    const data = await rewardService.getMyRewards(user.id);
-    success(res, data);
-  } catch (err) {
-    next(err);
-  }
-}
+  getStore = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.rewardService.getStore());
+    } catch (err) { next(err); }
+  };
 
-export async function redeemReward(req: Request, res: Response, next: NextFunction) {
-  try {
-    const user = req.user as User;
-    const idempotencyKey = req.headers['idempotency-key'] as string | undefined;
-    await rewardService.redeemReward(user.id, Number(req.params.rewardId), idempotencyKey);
-    success(res, {});
-  } catch (err) {
-    next(err);
-  }
-}
+  getMyRewards = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.rewardService.getMyRewards((req.user as User).id));
+    } catch (err) { next(err); }
+  };
 
-export async function getMyReferralCode(req: Request, res: Response, next: NextFunction) {
-  try {
-    const user = req.user as User;
-    const data = await rewardService.getMyReferralCode(user.id);
-    success(res, data);
-  } catch (err) {
-    next(err);
-  }
-}
+  redeemReward = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const idempotencyKey = req.headers['idempotency-key'] as string | undefined;
+      await this.rewardService.redeemReward((req.user as User).id, Number(req.params.rewardId), idempotencyKey);
+      success(res, {});
+    } catch (err) { next(err); }
+  };
 
-export async function applyReferralCode(req: Request, res: Response, next: NextFunction) {
-  try {
-    const user = req.user as User;
-    const data = await rewardService.applyReferralCode(user.id, req.body.code);
-    success(res, data);
-  } catch (err) {
-    next(err);
-  }
+  getMyReferralCode = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.rewardService.getMyReferralCode((req.user as User).id));
+    } catch (err) { next(err); }
+  };
+
+  applyReferralCode = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.rewardService.applyReferralCode((req.user as User).id, req.body.code));
+    } catch (err) { next(err); }
+  };
 }

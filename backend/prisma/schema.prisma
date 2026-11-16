@@ -13,25 +13,16 @@ enum Role {
   ADMIN
 }
 
-enum Tier {
-  BRONZE
-  SILVER
-  GOLD
-  PLATINUM
-  DIAMOND
-}
-
-enum CampaignStatus {
-  DRAFT
-  ACTIVE
-  INACTIVE
-}
 
 enum MissionType {
   REFERRAL
-  FIRST_LOAN_APPLICATION
-  FIRST_LOAN_APPROVAL
-  FIRST_REPAYMENT
+  APPLICATION_SUBMISSION
+  LOAN_APPROVAL
+  REPAYMENT
+  COMPLETE_FORM1
+  COMPLETE_FORM2
+  COMPLETE_FORM3
+  COMPLETE_FORM4
 }
 
 enum MissionStatus {
@@ -57,47 +48,99 @@ enum RedemptionStatus {
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 model User {
-  id              Int      @id @default(autoincrement())
-  email           String   @unique
-  password        String
-  name            String?
-  phone           String?  @unique
-  role            Role     @default(CUSTOMER)
-
-  // Points & tier
-  points          Int      @default(0)
-  tier            Tier     @default(BRONZE)
-
-  // Check-in streak (per customer, no midnight job needed)
-  lastCheckInDate DateTime? @db.Date
-  currentStreakDay Int       @default(0)
-
-  // Referral
-  referralCode    String   @unique
-  referredById    Int?
-  referredBy      User?    @relation("Referrals", fields: [referredById], references: [id])
-  referrals       User[]   @relation("Referrals")
-
-  // Relations
+  id               Int               @id @default(autoincrement())
+  role             Role              @default(CUSTOMER)
+  customerProfile  CustomerProfile?
+  staffProfile     StaffProfile?
+  refreshTokens    RefreshToken[]
   pointsHistory    PointsHistory[]
   checkIns         CheckIn[]
   customerMissions CustomerMission[]
   redemptions      Redemption[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model CustomerProfile {
+  id               Int               @id @default(autoincrement())
+  userId           Int               @unique
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  losUserId        Int?              @unique
+  name             String?
+  phone            String?           @unique
+  points           Int               @default(0)
+  tier             String            @default("BRONZE")
+  lastCheckInDate  DateTime?         @db.Date
+  currentStreakDay Int               @default(0)
+  referralCode     String            @unique
+  referredById     Int?              // CustomerProfile.id of the referrer
+  referredBy       CustomerProfile?  @relation("Referrals", fields: [referredById], references: [id])
+  referrals        CustomerProfile[] @relation("Referrals")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model StaffProfile {
+  id          Int        @id @default(autoincrement())
+  userId      Int        @unique
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email       String     @unique
+  password    String
+  name        String?
+  staffRoleId Int?
+  staffRole   StaffRole? @relation(fields: [staffRoleId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model RefreshToken {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+}
+
+// ─── RBAC ─────────────────────────────────────────────────────────────────────
+
+model StaffRole {
+  id          Int                   @id @default(autoincrement())
+  name        String                @unique
+  description String?
+  permissions StaffRolePermission[]
+  users       StaffProfile[]
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+}
+
+model Permission {
+  id      Int                   @id @default(autoincrement())
+  module  String
+  action  String
+  roles   StaffRolePermission[]
+
+  @@unique([module, action])
+}
+
+model StaffRolePermission {
+  id           Int        @id @default(autoincrement())
+  staffRoleId  Int
+  permissionId Int
+  staffRole    StaffRole  @relation(fields: [staffRoleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([staffRoleId, permissionId])
 }
 
 model Campaign {
-  id          Int            @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   title       String
   description String?
-  status      CampaignStatus @default(DRAFT)
-  startDate   DateTime?
-  endDate     DateTime?
   missions    Mission[]
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Mission {
@@ -107,6 +150,9 @@ model Mission {
   type             MissionType
   title            String
   points           Int
+  requiredCount    Int               @default(1)
+  startDate        DateTime
+  endDate          DateTime
   iconUrl          String?
   customerMissions CustomerMission[]
   createdAt        DateTime          @default(now())
@@ -120,6 +166,7 @@ model CustomerMission {
   missionId  Int
   mission    Mission       @relation(fields: [missionId], references: [id])
   status     MissionStatus @default(IN_PROGRESS)
+  progress   Int           @default(0)
   claimedAt  DateTime?
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
@@ -160,6 +207,24 @@ model RewardItem {
   redemptions Redemption[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+}
+
+model MachineClient {
+  id           Int      @id @default(autoincrement())
+  clientId     String   @unique
+  clientSecret String             // bcrypt hashed
+  name         String             // human-readable label e.g. "LOS Backend"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model TierConfig {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  minPoints Int      @default(0)
+  iconUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Redemption {

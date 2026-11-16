@@ -1,8 +1,8 @@
 import { Request } from 'express';
-import { User } from '@prisma/client';
+import { AuthenticatedUser } from '../../types/express.js';
 
 export interface AuthenticatedRequest extends Request {
-  user: User;
+  user: AuthenticatedUser;
 }
 
 export interface ApiResponse<T> {

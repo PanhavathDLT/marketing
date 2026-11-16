@@ -2,9 +2,12 @@ import { Router, IRouter } from 'express';
 import { authenticate, requireRole } from '@shared/middleware/auth.middleware.js';
 import { authRouter } from '@modules/auth/index.js';
 import { adminCampaignRouter, customerCampaignRouter } from '@modules/campaign/index.js';
-import { adminMissionRouter } from '@modules/mission/index.js';
+import { adminMissionRouter, adminMissionStandaloneRouter, missionLosRouter } from '@modules/mission/index.js';
 import { analyticsRouter } from '@modules/analytics/index.js';
-import { rewardRouter, referralRouter } from '@modules/reward/index.js';
+import { rewardRouter, referralRouter, adminRewardStoreRouter } from '@modules/reward/index.js';
+import { userManagementRouter } from '@modules/user-management/index.js';
+import { uploadRouter } from '@modules/upload/upload.routes.js';
+import { adminTierRouter, customerTierRouter } from '@modules/tier/index.js';
 
 const router: IRouter = Router();
 
@@ -18,6 +21,7 @@ customer.use(authenticate, requireRole('CUSTOMER'));
 customer.use('/campaigns', customerCampaignRouter);
 customer.use('/reward', rewardRouter);           // /reward/points, /reward/missions, /reward/store, etc.
 customer.use('/referral', referralRouter);       // /referral/my-code, /referral/apply
+customer.use('/tiers', customerTierRouter);
 
 router.use('/customer', customer);
 
@@ -27,8 +31,17 @@ admin.use(authenticate, requireRole('ADMIN'));
 
 admin.use('/campaigns', adminCampaignRouter);
 admin.use('/campaigns/:campaignId/missions', adminMissionRouter);
+admin.use('/missions', adminMissionStandaloneRouter);
+admin.use('/reward/store', adminRewardStoreRouter);
 admin.use('/analytics', analyticsRouter);
+admin.use('/user-management', userManagementRouter);
+admin.use('/upload', uploadRouter);
+admin.use('/tiers', adminTierRouter);
 
 router.use('/admin', admin);
+
+// ─── LOS (LOS backend → marketing backend) ────────────────────────────────────
+// Protected by X-Internal-Key header — not for browsers or mobile clients
+router.use('/los', missionLosRouter);
 
 export default router;

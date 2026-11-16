@@ -1,7 +1,8 @@
 import { api } from "@/lib/api";
-import type { Mission, MissionPayload } from "../types";
+import type { Mission, MissionPayload, MissionTypeOption } from "../types";
 
 export const missionsApi = {
+  listTypes: () => api.get<MissionTypeOption[]>("/admin/missions/types"),
   list: (campaignId: number) =>
     api.get<Mission[]>(`/admin/campaigns/${campaignId}/missions`),
   create: (campaignId: number, payload: MissionPayload) =>

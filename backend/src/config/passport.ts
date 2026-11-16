@@ -11,7 +11,19 @@ const opts: StrategyOptionsWithoutRequest = {
 passport.use(
   new JwtStrategy(opts, async (payload, done) => {
     try {
-      const user = await prisma.user.findUnique({ where: { id: payload.id } });
+      const user = await prisma.user.findUnique({
+        where: { id: payload.id },
+        include: {
+          customerProfile: true,
+          staffProfile: {
+            include: {
+              staffRole: {
+                include: { permissions: { include: { permission: true } } },
+              },
+            },
+          },
+        },
+      });
       if (!user) return done(null, false);
       return done(null, user);
     } catch (err) {

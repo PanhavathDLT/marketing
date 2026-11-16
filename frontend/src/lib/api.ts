@@ -1,6 +1,6 @@
 import { getAccessToken, clearAuth } from "./auth";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1";
 
 type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
@@ -39,11 +39,39 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const json = await res.json().catch(() => null);
 
   if (!res.ok) {
-    throw new Error(json?.error ?? res.statusText);
+    const err = json?.error;
+    const message =
+      typeof err === "string" ? err : err?.message ?? json?.message ?? res.statusText;
+    throw new Error(message || `Request failed (${res.status})`);
   }
 
   // Unwrap envelope: { status: "success", data: ... }
   return (json?.data ?? json) as T;
+}
+
+/** Upload a file to POST /admin/upload and return the served URL. */
+export async function uploadImage(file: File): Promise<string> {
+  const token = getAccessToken();
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await fetch(`${BASE_URL}/admin/upload`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: form,
+  });
+
+  if (res.status === 401) {
+    clearAuth();
+    if (typeof window !== "undefined") window.location.href = "/login";
+    throw new Error("Unauthorized");
+  }
+
+  const json = await res.json().catch(() => null);
+  if (!res.ok) throw new Error(json?.error ?? "Upload failed");
+
+  const data = json?.data ?? json;
+  return data.url as string;
 }
 
 export const api = {
@@ -53,6 +81,8 @@ export const api = {
     request<T>(path, { ...options, method: "POST", body }),
   patch: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     request<T>(path, { ...options, method: "PATCH", body }),
+  put: <T>(path: string, body?: unknown, options?: RequestOptions) =>
+    request<T>(path, { ...options, method: "PUT", body }),
   delete: <T>(path: string, options?: RequestOptions) =>
     request<T>(path, { ...options, method: "DELETE" }),
 };

@@ -7,6 +7,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/campaigns": "Campaigns",
   "/missions": "Missions",
+  "/reward-store": "Reward Store",
+  "/user-management": "User Management",
 };
 
 export function Header() {
