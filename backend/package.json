@@ -10,9 +10,12 @@
     "type-check": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:prod": "dotenv -e .env -- prisma migrate deploy",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:seed": "prisma db seed"
+    "db:seed": "prisma db seed",
+    "db:seed:local": "dotenv -e .env.dev -- tsx prisma/seed.ts",
+    "db:seed:prod": "dotenv -e .env -- tsx prisma/seed.ts"
   },
   "keywords": [],
   "author": "",
@@ -48,6 +51,7 @@
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
     "@types/pg": "^8.23.1",
+    "dotenv-cli": "^11.1.0",
     "nodemon": "^3.1.14",
     "prisma": "7.10.1"
   },
