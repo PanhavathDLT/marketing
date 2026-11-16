@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
 
-dotenv.config();
+// In production (Railway) env vars are injected directly — dotenv is a no-op.
+// In local dev, tsx --env-file=.env.dev loads vars before this runs.
+dotenv.config({ override: false });
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -18,7 +20,7 @@ const envSchema = z.object({
   LOS_ISSUER: z.string().default('los-backend'),
   LOS_CUSTOMER_AUDIENCE: z.string().default('luyleun'),
   // Storage
-  STORAGE_DRIVER: z.enum(['local', 'cloudinary']).default('local'),
+  STORAGE_DRIVER: z.enum(['local', 'cloudinary', 'db']).default('db'),
   APP_URL: z.string().url().default('http://localhost:3000'),
 
   // Cloudinary (required only when STORAGE_DRIVER=cloudinary)
