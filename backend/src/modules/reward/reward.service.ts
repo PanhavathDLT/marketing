@@ -19,7 +19,7 @@ function resolveStreak(lastCheckInDate: Date | null, currentStreakDay: number) {
   const today = todayInPhnomPenh();
   if (!lastCheckInDate) return { streak: 0, todayDay: 1, checkedToday: false };
 
-  const last = lastCheckInDate.toISOString().slice(0, 10);
+  const last = lastCheckInDate.toLocaleDateString('en-CA', { timeZone: TIMEZONE });
   if (last === today) return { streak: currentStreakDay, todayDay: currentStreakDay, checkedToday: true };
 
   const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('en-CA', { timeZone: TIMEZONE });

@@ -1,0 +1,1280 @@
+{
+  "info": {
+    "name": "Marketing Backend — Web Portal (Admin)",
+    "description": "Endpoints used by the admin web portal.\n\n**Getting started**\n1. Check `baseUrl` (default http://localhost:4000/api/v1).\n2. Run **1. Auth → Login (admin)**. The token is saved automatically.\n3. Call anything else. Auth is inherited from the collection (Bearer {{accessToken}}).\n\n**Ids:** create requests save the new id (campaignId, missionId, rewardId, tierId, userId, roleId) to collection variables, so get/update/delete run against what you just created.\n\n**Permissions:** each request notes the permission it needs. The seeded super admin has all of them; admins with a staff role only have what the role grants (403 otherwise).\n\n**Responses:** success `{ status: 'success', data }`, error `{ status: 'error', error: 'message' }`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "adminmkt@dlt.com",
+      "type": "string"
+    },
+    {
+      "key": "adminPassword",
+      "value": "Admin1234!",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "campaignId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "missionId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "rewardId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "redemptionId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "tierId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "roleId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "uploadedUrl",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Auth",
+      "description": "Run **Login (admin)** first. Every other request uses the saved {{accessToken}} via collection-level Bearer auth.",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Sign in to the web portal. Saves accessToken and refreshToken to collection variables automatically.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (json.data && json.data.accessToken !== undefined) pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "if (json.data && json.data.refreshToken !== undefined) pm.collectionVariables.set('refreshToken', json.data.refreshToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Exchange the refresh token for a new token pair. Saves both automatically.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (json.data && json.data.accessToken !== undefined) pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "if (json.data && json.data.refreshToken !== undefined) pm.collectionVariables.set('refreshToken', json.data.refreshToken);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Campaigns",
+      "description": "",
+      "item": [
+        {
+          "name": "List campaigns",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/campaigns",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "campaigns"
+              ]
+            },
+            "description": "Permission: CAMPAIGN.View"
+          }
+        },
+        {
+          "name": "Get campaign",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/campaigns/{{campaignId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "campaigns",
+                "{{campaignId}}"
+              ]
+            },
+            "description": "Permission: CAMPAIGN.View"
+          }
+        },
+        {
+          "name": "Create campaign",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/campaigns",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "campaigns"
+              ]
+            },
+            "description": "Permission: CAMPAIGN.Create. Saves the new id to {{campaignId}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"December Promo\",\n  \"description\": \"Rewards for December activity\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (json.data && json.data.id !== undefined) pm.collectionVariables.set('campaignId', json.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update campaign",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/campaigns/{{campaignId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "campaigns",
+                "{{campaignId}}"
+              ]
+            },
+            "description": "Permission: CAMPAIGN.Update. All fields optional.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"December Promo (updated)\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete campaign",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/campaigns/{{campaignId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "campaigns",
+                "{{campaignId}}"
+              ]
+            },
+            "description": "Permission: CAMPAIGN.Delete"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Missions",
+      "description": "",
+      "item": [
+        {
+          "name": "List mission types",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/missions/types",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "missions",
+                "types"
+              ]
+            },
+            "description": "Permission: MISSION.View. Values for the mission `type` dropdown."
+          }
+        },
+        {
+          "name": "List missions in campaign",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/campaigns/{{campaignId}}/missions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "campaigns",
+                "{{campaignId}}",
+                "missions"
+              ]
+            },
+            "description": "Permission: MISSION.View"
+          }
+        },
+        {
+          "name": "Create mission",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/campaigns/{{campaignId}}/missions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "campaigns",
+                "{{campaignId}}",
+                "missions"
+              ]
+            },
+            "description": "Permission: MISSION.Create. `campaignId` in the body uses the same {{campaignId}} as the URL.\n\n`type`: REFERRAL | APPLICATION_SUBMISSION | LOAN_APPROVAL | REPAYMENT | COMPLETE_FORM1 | COMPLETE_FORM2 | COMPLETE_FORM3 | COMPLETE_FORM4\n\nDates are ISO-8601 UTC. `iconUrl` (optional) comes from **Upload image**. Saves the new id to {{missionId}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campaignId\": {{campaignId}},\n  \"type\": \"REFERRAL\",\n  \"title\": \"Invite a friend\",\n  \"points\": 100,\n  \"requiredCount\": 1,\n  \"startDate\": \"2026-12-01T00:00:00.000Z\",\n  \"endDate\": \"2026-12-31T23:59:59.000Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (json.data && json.data.id !== undefined) pm.collectionVariables.set('missionId', json.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update mission",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/campaigns/{{campaignId}}/missions/{{missionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "campaigns",
+                "{{campaignId}}",
+                "missions",
+                "{{missionId}}"
+              ]
+            },
+            "description": "Permission: MISSION.Update. All fields optional; `campaignId` cannot be changed.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"points\": 150,\n  \"requiredCount\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete mission",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/campaigns/{{campaignId}}/missions/{{missionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "campaigns",
+                "{{campaignId}}",
+                "missions",
+                "{{missionId}}"
+              ]
+            },
+            "description": "Permission: MISSION.Delete"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Reward Store",
+      "description": "",
+      "item": [
+        {
+          "name": "List reward items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reward/store",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reward",
+                "store"
+              ]
+            },
+            "description": "Permission: REWARD_STORE.View"
+          }
+        },
+        {
+          "name": "Get reward item",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reward/store/{{rewardId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reward",
+                "store",
+                "{{rewardId}}"
+              ]
+            },
+            "description": "Permission: REWARD_STORE.View"
+          }
+        },
+        {
+          "name": "Create reward item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reward/store",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reward",
+                "store"
+              ]
+            },
+            "description": "Permission: REWARD_STORE.Create. `imageUrl` (optional) comes from **Upload image**. Saves the new id to {{rewardId}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Coffee voucher\",\n  \"points\": 500,\n  \"stock\": 50,\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (json.data && json.data.id !== undefined) pm.collectionVariables.set('rewardId', json.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update reward item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reward/store/{{rewardId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reward",
+                "store",
+                "{{rewardId}}"
+              ]
+            },
+            "description": "Permission: REWARD_STORE.Update. All fields optional.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stock\": 40,\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete reward item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reward/store/{{rewardId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reward",
+                "store",
+                "{{rewardId}}"
+              ]
+            },
+            "description": "Permission: REWARD_STORE.Delete"
+          }
+        },
+        {
+          "name": "List redemptions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reward/store/redemptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reward",
+                "store",
+                "redemptions"
+              ]
+            },
+            "description": "Permission: REWARD_STORE.View"
+          }
+        },
+        {
+          "name": "Update redemption status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/reward/store/redemptions/{{redemptionId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reward",
+                "store",
+                "redemptions",
+                "{{redemptionId}}",
+                "status"
+              ]
+            },
+            "description": "Permission: REWARD_STORE.Update. `status`: PENDING_PICKUP | COLLECTED | EXPIRED. Set {{redemptionId}} from **List redemptions**.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COLLECTED\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Tiers",
+      "description": "",
+      "item": [
+        {
+          "name": "List tiers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/tiers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "tiers"
+              ]
+            },
+            "description": "Permission: TIER.View"
+          }
+        },
+        {
+          "name": "Get tier",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/tiers/{{tierId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "tiers",
+                "{{tierId}}"
+              ]
+            },
+            "description": "Permission: TIER.View"
+          }
+        },
+        {
+          "name": "Create tier",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/tiers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "tiers"
+              ]
+            },
+            "description": "Permission: TIER.Create. `name` is upper-cased by the server. Saves the new id to {{tierId}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"PLATINUM\",\n  \"minPoints\": 10000,\n  \"iconUrl\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (json.data && json.data.id !== undefined) pm.collectionVariables.set('tierId', json.data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update tier",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/tiers/{{tierId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "tiers",
+                "{{tierId}}"
+              ]
+            },
+            "description": "Permission: TIER.Update. All fields optional.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"minPoints\": 12000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete tier",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/tiers/{{tierId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "tiers",
+                "{{tierId}}"
+              ]
+            },
+            "description": "Permission: TIER.Delete"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Analytics",
+      "description": "",
+      "item": [
+        {
+          "name": "Overview",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/analytics/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "analytics",
+                "overview"
+              ]
+            },
+            "description": "Permission: ANALYTICS.View. Dashboard totals."
+          }
+        },
+        {
+          "name": "Campaign stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/analytics/campaigns/{{campaignId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "analytics",
+                "campaigns",
+                "{{campaignId}}"
+              ]
+            },
+            "description": "Permission: ANALYTICS.View"
+          }
+        },
+        {
+          "name": "Check-in stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/analytics/check-ins",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "analytics",
+                "check-ins"
+              ]
+            },
+            "description": "Permission: ANALYTICS.View"
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. User Management",
+      "description": "",
+      "item": [
+        {
+          "name": "Admin users",
+          "description": "",
+          "item": [
+            {
+              "name": "List admin users",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/user-management/users",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "user-management",
+                    "users"
+                  ]
+                },
+                "description": "Permission: USER_MANAGEMENT.View"
+              }
+            },
+            {
+              "name": "Get admin user",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/user-management/users/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "user-management",
+                    "users",
+                    "{{userId}}"
+                  ]
+                },
+                "description": "Permission: USER_MANAGEMENT.View"
+              }
+            },
+            {
+              "name": "Create admin user",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/user-management/users",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "user-management",
+                    "users"
+                  ]
+                },
+                "description": "Permission: USER_MANAGEMENT.Create. Password min 8 chars. Omit `staffRoleId` for no role. Saves the new id to {{userId}}.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Campaign Manager\",\n  \"email\": \"manager@example.com\",\n  \"password\": \"ChangeMe123!\",\n  \"staffRoleId\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                      "if (json.data && json.data.id !== undefined) pm.collectionVariables.set('userId', json.data.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update admin user",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/user-management/users/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "user-management",
+                    "users",
+                    "{{userId}}"
+                  ]
+                },
+                "description": "Permission: USER_MANAGEMENT.Update. All fields optional; `staffRoleId: null` removes the role.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Campaign Manager\",\n  \"staffRoleId\": null\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Delete admin user",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/user-management/users/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "user-management",
+                    "users",
+                    "{{userId}}"
+                  ]
+                },
+                "description": "Permission: USER_MANAGEMENT.Delete"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Roles & permissions (super admin only)",
+          "description": "Only the seeded super admin (an admin with no staff role) can call these.",
+          "item": [
+            {
+              "name": "List permissions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/user-management/permissions",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "user-management",
+                    "permissions"
+                  ]
+                },
+                "description": "Super admin only. Returns the permission ids used by **Set role permissions**."
+              }
+            },
+            {
+              "name": "List roles",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/user-management/roles",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "user-management",
+                    "roles"
+                  ]
+                },
+                "description": "Super admin only."
+              }
+            },
+            {
+              "name": "Get role",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/user-management/roles/{{roleId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "user-management",
+                    "roles",
+                    "{{roleId}}"
+                  ]
+                },
+                "description": "Super admin only."
+              }
+            },
+            {
+              "name": "Create role",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/user-management/roles",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "user-management",
+                    "roles"
+                  ]
+                },
+                "description": "Super admin only. Saves the new id to {{roleId}}.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Campaign Manager\",\n  \"description\": \"Manages campaigns and missions\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const json = pm.response.json();",
+                      "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                      "if (json.data && json.data.id !== undefined) pm.collectionVariables.set('roleId', json.data.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update role",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/user-management/roles/{{roleId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "user-management",
+                    "roles",
+                    "{{roleId}}"
+                  ]
+                },
+                "description": "Super admin only. All fields optional.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"description\": \"Manages campaigns, missions and rewards\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Set role permissions",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/user-management/roles/{{roleId}}/permissions",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "user-management",
+                    "roles",
+                    "{{roleId}}",
+                    "permissions"
+                  ]
+                },
+                "description": "Super admin only. Replaces the role's full permission set.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"permissionIds\": [\n    1,\n    2,\n    3,\n    4\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Delete role",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/admin/user-management/roles/{{roleId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "admin",
+                    "user-management",
+                    "roles",
+                    "{{roleId}}"
+                  ]
+                },
+                "description": "Super admin only."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "8. Upload",
+      "description": "",
+      "item": [
+        {
+          "name": "Upload image",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "upload"
+              ]
+            },
+            "description": "Upload an image for mission icons, reward images or tier icons. Send form-data with field `file` (JPEG, PNG, WebP or GIF, max 5 MB). Returns the hosted URL to use as `iconUrl` / `imageUrl`. In Postman, pick the file in the Body tab.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "if (json.data && json.data.url !== undefined) pm.collectionVariables.set('uploadedUrl', json.data.url);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

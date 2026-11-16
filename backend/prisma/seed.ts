@@ -7,8 +7,8 @@ const prisma = new PrismaClient({
   adapter: new PrismaPg(process.env.DATABASE_URL ?? ''),
 });
 
-const DEV_DEFAULT_EMAIL = 'admin@example.com';
-const DEV_DEFAULT_PASSWORD = 'Admin12345!';
+const DEV_DEFAULT_EMAIL = 'adminmkt@dlt.com';
+const DEV_DEFAULT_PASSWORD = 'Admin1234!';
 
 function adminCredentials() {
   const isProd = process.env.NODE_ENV === 'production';
