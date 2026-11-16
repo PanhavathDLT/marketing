@@ -9,6 +9,10 @@
 
 @theme inline {
   --font-sans: 'Inter', sans-serif;
+  --animate-solar-orbit: solar-orbit 7s linear infinite;
+  --animate-solar-orbit-reverse: solar-orbit-reverse 7s linear infinite;
+  --animate-sun-glow: sun-glow 3s ease-in-out infinite;
+  --animate-star-twinkle: star-twinkle 2s ease-in-out infinite;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -173,24 +177,22 @@
   }
 }
 
-@layer base {
-  @keyframes solar-orbit {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
+@keyframes solar-orbit {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
 
-  @keyframes solar-orbit-reverse {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(-360deg); }
-  }
+@keyframes solar-orbit-reverse {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
 
-  @keyframes sun-glow {
-    0%, 100% { box-shadow: 0 0 24px 10px rgba(251,191,36,0.45), 0 0 60px 24px rgba(251,146,60,0.2); }
-    50%       { box-shadow: 0 0 40px 16px rgba(251,191,36,0.65), 0 0 90px 36px rgba(251,146,60,0.3); }
-  }
+@keyframes sun-glow {
+  0%, 100% { box-shadow: 0 0 24px 10px rgba(251,191,36,0.45), 0 0 60px 24px rgba(251,146,60,0.2); }
+  50%       { box-shadow: 0 0 40px 16px rgba(251,191,36,0.65), 0 0 90px 36px rgba(251,146,60,0.3); }
+}
 
-  @keyframes star-twinkle {
-    0%, 100% { opacity: 0.15; }
-    50%       { opacity: 0.9; }
-  }
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.9; }
 }
