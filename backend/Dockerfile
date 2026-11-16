@@ -23,6 +23,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 # Copy prisma schema + migrations (needed for migrate deploy at runtime)
 COPY prisma ./prisma/
+# Copy prisma config (needed for prisma migrate deploy to find DATABASE_URL)
+COPY prisma.config.ts ./
 COPY package.json ./
 
 EXPOSE 4000
