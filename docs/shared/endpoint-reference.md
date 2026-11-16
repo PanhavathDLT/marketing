@@ -39,6 +39,61 @@
 
 ---
 
+## Authentication Flows
+
+### Mobile App → Marketing Backend
+
+The mobile app never uses email/password. It authenticates using the JWT it already holds from the LOS (loan) system.
+
+```
+Mobile App                    LOS System                  Marketing Backend
+    │                              │                               │
+    │── opens Reward screen ──────▶│                               │
+    │◀── LOS JWT (access token) ───│                               │
+    │                              │                               │
+    │── POST /auth/session ────────────────────────────────────────▶│
+    │   body: { losToken: "<LOS JWT>" }                            │
+    │                              │          verify JWT signature  │
+    │                              │◀── fetch JWKS ────────────────│
+    │                              │─── JWKS (public keys) ───────▶│
+    │                              │                               │
+    │◀── { accessToken, refreshToken } ────────────────────────────│
+    │                              │                               │
+    │── GET /customer/reward/... ──────────────────────────────────▶│
+    │   Authorization: Bearer <accessToken>                        │
+```
+
+**Key points:**
+- The LOS JWT is verified by the marketing backend using the LOS's public JWKS endpoint — no shared secret
+- On success, the marketing backend returns its own short-lived `accessToken` + `refreshToken`
+- If the customer has no marketing profile yet, one is auto-created on first session
+- When `accessToken` expires, call `POST /auth/refresh` with the `refreshToken` to get a new pair
+
+---
+
+### LOS Backend → Marketing Backend (Server-to-Server)
+
+The LOS backend fires mission events directly to the marketing backend using a pre-shared `clientId` + `clientSecret`.
+
+```
+LOS Backend                                         Marketing Backend
+    │                                                       │
+    │── POST /los/missions/complete ───────────────────────▶│
+    │   X-Client-Id:     los-backend                        │
+    │   X-Client-Secret: <secret>                           │
+    │                              look up MachineClient     │
+    │                              bcrypt.compare(secret)    │
+    │◀── 200 { triggered: true } ──────────────────────────│
+```
+
+**Key points:**
+- Credentials are provisioned once by the marketing backend team via `pnpm db:seed` (reads `LOS_CLIENT_ID` + `LOS_CLIENT_SECRET` from `.env`)
+- The marketing backend stores a **bcrypt hash** of the secret — the plaintext is never stored
+- Share `LOS_CLIENT_ID` and `LOS_CLIENT_SECRET` values with the LOS backend team over a secure channel (not email or chat)
+- Both headers must be present on every LOS request — missing either returns `401`
+
+---
+
 ## 1. Auth — `MOBILE` `ADMIN WEB`
 
 ---
