@@ -60,6 +60,15 @@ export function LoginForm() {
 
   return (
     <div className="flex min-h-screen">
+      <style>{`
+        @keyframes solar-orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes solar-orbit-reverse { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+        @keyframes sun-glow {
+          0%, 100% { box-shadow: 0 0 24px 10px rgba(251,191,36,0.45), 0 0 60px 24px rgba(251,146,60,0.2); }
+          50% { box-shadow: 0 0 40px 16px rgba(251,191,36,0.65), 0 0 90px 36px rgba(251,146,60,0.3); }
+        }
+        @keyframes star-twinkle { 0%, 100% { opacity: 0.15; } 50% { opacity: 0.9; } }
+      `}</style>
       {/* ── Left panel — solar system ── */}
       <div
         className="hidden lg:flex w-1/2 relative flex-col items-center justify-center overflow-hidden"
