@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Megaphone, Trophy, LogOut, Gift, Users, Layers, GitBranch, ShoppingBag } from "lucide-react";
+import { LayoutDashboard, Megaphone, Trophy, LogOut, Gift, Users, Layers, GitBranch, ShoppingBag, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clearAuth, useStoredUser } from "@/lib/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -32,6 +32,7 @@ const NAV_GROUPS = [
     items: [
       { href: "/tiers",           label: "Tiers",           icon: Layers },
       { href: "/user-management", label: "User Management", icon: Users },
+      { href: "/settings",        label: "Settings",        icon: Settings },
     ],
   },
 ];

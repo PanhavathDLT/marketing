@@ -41,6 +41,33 @@ export class RewardRepository {
     });
   }
 
+  async applyReferralCodeWithBonus(
+    customerId: number,
+    referrerProfileId: number,
+    bonusPoints: number,
+    newTier: string,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.customerProfile.update({
+        where: { userId: customerId },
+        data: {
+          referredById: referrerProfileId,
+          ...(bonusPoints > 0 && { points: { increment: bonusPoints }, tier: newTier }),
+        },
+      });
+      if (bonusPoints > 0) {
+        await tx.pointsHistory.create({
+          data: {
+            customerId,
+            source: 'REFERRAL',
+            title: 'Referral joining bonus',
+            points: bonusPoints,
+          },
+        });
+      }
+    });
+  }
+
   getPointsHistory(customerId: number): Promise<PointsHistory[]> {
     return this.prisma.pointsHistory.findMany({
       where: { customerId },

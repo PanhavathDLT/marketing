@@ -8,6 +8,7 @@ import { rewardRouter, referralRouter, adminRewardStoreRouter } from '@modules/r
 import { userManagementRouter } from '@modules/user-management/index.js';
 import { uploadRouter } from '@modules/upload/upload.routes.js';
 import { adminTierRouter, customerTierRouter } from '@modules/tier/index.js';
+import { settingsRouter } from '@modules/settings/index.js';
 
 const router: IRouter = Router();
 
@@ -37,6 +38,7 @@ admin.use('/analytics', analyticsRouter);
 admin.use('/user-management', userManagementRouter);
 admin.use('/upload', uploadRouter);
 admin.use('/tiers', adminTierRouter);
+admin.use('/settings', settingsRouter);
 
 router.use('/admin', admin);
 

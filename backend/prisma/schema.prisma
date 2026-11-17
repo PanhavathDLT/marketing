@@ -249,3 +249,9 @@ model StoredFile {
   data      Bytes
   createdAt DateTime @default(now())
 }
+
+model ReferralConfig {
+  id           Int      @id @default(autoincrement())
+  refereeBonus Int      @default(0)   // points auto-awarded to the referee on code apply
+  updatedAt    DateTime @updatedAt
+}

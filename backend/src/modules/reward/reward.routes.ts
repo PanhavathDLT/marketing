@@ -5,13 +5,15 @@ import { RewardController } from './reward.controller.js';
 import { MissionRepository } from '@modules/mission/mission.repository.js';
 import { MissionService } from '@modules/mission/mission.service.js';
 import { TierRepository } from '@modules/tier/index.js';
+import { SettingsRepository } from '@modules/settings/settings.repository.js';
 import prisma from '@lib/prisma.js';
 
 // ─── Composition root ─────────────────────────────────────────────────────────
 const tierRepo = new TierRepository(prisma);
+const settingsRepo = new SettingsRepository(prisma);
 
 const rewardRepo = new RewardRepository(prisma);
-const rewardService = new RewardService(rewardRepo, tierRepo);
+const rewardService = new RewardService(rewardRepo, tierRepo, settingsRepo);
 
 const missionRepo = new MissionRepository(prisma);
 const missionService = new MissionService(missionRepo, tierRepo);

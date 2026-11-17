@@ -82,6 +82,8 @@ const PERMISSIONS = [
   { module: 'TIER',            action: 'Create' },
   { module: 'TIER',            action: 'Update' },
   { module: 'TIER',            action: 'Delete' },
+  { module: 'SETTINGS',        action: 'View'   },
+  { module: 'SETTINGS',        action: 'Update' },
 ];
 
 async function seedPermissions() {
@@ -137,11 +139,22 @@ async function seedMachineClients() {
   console.log(`✔ Seeded machine client: ${clientId}`);
 }
 
+async function seedReferralConfig() {
+  const existing = await prisma.referralConfig.findFirst();
+  if (existing) {
+    console.log(`• ReferralConfig already exists (refereeBonus=${existing.refereeBonus}), skipping`);
+    return;
+  }
+  await prisma.referralConfig.create({ data: { refereeBonus: 50 } });
+  console.log(`✔ Seeded ReferralConfig (refereeBonus=50)`);
+}
+
 async function main() {
   await seedAdmin();
   await seedPermissions();
   await seedDefaultTiers();
   await seedMachineClients();
+  await seedReferralConfig();
 }
 
 main()

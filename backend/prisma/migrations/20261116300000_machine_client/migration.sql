@@ -10,3 +10,6 @@ CREATE TABLE "MachineClient" (
   "updatedAt"    TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "MachineClient_clientId_key" UNIQUE ("clientId")
 );
+
+-- Prisma manages updatedAt via @updatedAt — drop the DB-level default
+ALTER TABLE "MachineClient" ALTER COLUMN "updatedAt" DROP DEFAULT;

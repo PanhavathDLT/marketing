@@ -3,6 +3,7 @@ import { RewardRepository } from './reward.repository.js';
 import { toPointsDTO, toStoreItemDTO, toRedemptionDTO, PointsDTO, StoreItemDTO, RedemptionDTO } from './reward.mapper.js';
 import { CHECK_IN_POINTS, CYCLE_LENGTH, TIMEZONE } from './reward.config.js';
 import { TierRepository, resolveTierName } from '@modules/tier/index.js';
+import { SettingsRepository } from '@modules/settings/settings.repository.js';
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 
@@ -37,6 +38,7 @@ export class RewardService {
   constructor(
     private readonly repo: RewardRepository,
     private readonly tierRepo: TierRepository,
+    private readonly settingsRepo: SettingsRepository,
   ) {}
 
   async getPoints(customerId: number): Promise<PointsDTO> {
@@ -139,8 +141,16 @@ export class RewardService {
     const referrer = await this.repo.findUserByReferralCode(code);
     if (!referrer) throw new AppError('Referral code not found.', 404);
 
-    // referrer is a CustomerProfile — pass its id as the referrerProfileId
-    await this.repo.updateUserReferredBy(customerId, referrer.id);
-    return { referrerName: referrer.name ?? 'Unknown' };
+    const [config, tiers] = await Promise.all([
+      this.settingsRepo.getReferralConfig(),
+      this.tierRepo.findAll(),
+    ]);
+    const bonusPoints = config?.refereeBonus ?? 0;
+    const newTier = bonusPoints > 0
+      ? resolveTierName(customer.customerProfile.points + bonusPoints, tiers)
+      : customer.customerProfile.tier;
+
+    await this.repo.applyReferralCodeWithBonus(customerId, referrer.id, bonusPoints, newTier);
+    return { referrerName: referrer.name ?? 'Unknown', bonusPoints };
   }
 }

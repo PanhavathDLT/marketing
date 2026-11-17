@@ -1,6 +1,3 @@
--- AlterTable
-ALTER TABLE "MachineClient" ALTER COLUMN "updatedAt" DROP DEFAULT;
-
 -- CreateTable
 CREATE TABLE "StoredFile" (
     "id" TEXT NOT NULL,
