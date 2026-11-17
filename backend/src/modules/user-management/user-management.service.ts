@@ -4,8 +4,8 @@ import { AppError } from '@shared/errors/AppError.js';
 import { invalidatePermissionCache } from '@shared/middleware/permission.middleware.js';
 import { UserManagementRepository } from './user-management.repository.js';
 import {
-  toAdminUserDTO, toRoleDTO, groupPermissions,
-  AdminUserDTO, RoleDTO, PermissionGroupDTO,
+  toAdminUserDTO, toRoleDTO, groupPermissions, toCustomerDTO,
+  AdminUserDTO, RoleDTO, PermissionGroupDTO, CustomerDTO,
 } from './user-management.mapper.js';
 import {
   CreateAdminUserInput, UpdateAdminUserInput,
@@ -75,6 +75,18 @@ export class UserManagementService {
     const existing = await this.repo.findAdminUserById(id);
     if (!existing) throw new AppError('Admin user not found', 404);
     await this.repo.deleteAdminUser(id);
+  }
+
+  // ─── Customers ─────────────────────────────────────────────────────────────
+
+  async listCustomers(): Promise<CustomerDTO[]> {
+    return (await this.repo.findAllCustomers()).map(toCustomerDTO);
+  }
+
+  async getCustomerById(id: number): Promise<CustomerDTO> {
+    const customer = await this.repo.findCustomerById(id);
+    if (!customer) throw new AppError('Customer not found', 404);
+    return toCustomerDTO(customer);
   }
 
   // ─── Roles ─────────────────────────────────────────────────────────────────

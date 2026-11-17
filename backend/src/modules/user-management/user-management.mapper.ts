@@ -1,4 +1,4 @@
-import { User, StaffProfile, StaffRole, Permission, StaffRolePermission } from '@prisma/client';
+import { User, StaffProfile, StaffRole, Permission, StaffRolePermission, CustomerProfile } from '@prisma/client';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -69,6 +69,38 @@ export function toRoleDTO(role: RoleWithPermissions, userCount = 0): RoleDTO {
 type UserWithStaffProfile = User & {
   staffProfile: (StaffProfile & { staffRole: StaffRole | null }) | null;
 };
+
+export type CustomerDTO = {
+  id: number;
+  userId: number;
+  name: string | null;
+  phone: string | null;
+  points: number;
+  tier: string;
+  referralCode: string;
+  referredBy: { id: number; name: string | null; referralCode: string } | null;
+  joinedAt: string;
+};
+
+type CustomerProfileWithReferrer = CustomerProfile & {
+  referredBy: CustomerProfile | null;
+};
+
+export function toCustomerDTO(cp: CustomerProfileWithReferrer): CustomerDTO {
+  return {
+    id: cp.id,
+    userId: cp.userId,
+    name: cp.name,
+    phone: cp.phone,
+    points: cp.points,
+    tier: cp.tier,
+    referralCode: cp.referralCode,
+    referredBy: cp.referredBy
+      ? { id: cp.referredBy.id, name: cp.referredBy.name, referralCode: cp.referredBy.referralCode }
+      : null,
+    joinedAt: cp.createdAt.toISOString(),
+  };
+}
 
 export function toAdminUserDTO(user: UserWithStaffProfile): AdminUserDTO {
   const sp = user.staffProfile;

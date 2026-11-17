@@ -18,6 +18,10 @@ const controller = new UserManagementController(service);
 // Mounted at /api/v1/admin/user-management
 export const userManagementRouter: IRouter = Router();
 
+// ─── Customers ────────────────────────────────────────────────────────────────
+userManagementRouter.get('/customers',     requirePermission('USER_MANAGEMENT', 'View'), controller.listCustomers);
+userManagementRouter.get('/customers/:id', requirePermission('USER_MANAGEMENT', 'View'), controller.getCustomerById);
+
 // ─── Users (scoped admins with USER_MANAGEMENT permission) ────────────────────
 userManagementRouter.get('/users',     requirePermission('USER_MANAGEMENT', 'View'),   controller.listUsers);
 userManagementRouter.get('/users/:id', requirePermission('USER_MANAGEMENT', 'View'),   controller.getUserById);

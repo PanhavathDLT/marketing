@@ -35,6 +35,16 @@ export class UserManagementController {
     } catch (err) { next(err); }
   };
 
+  // ─── Customers ─────────────────────────────────────────────────────────────
+
+  listCustomers = async (_req: Request, res: Response, next: NextFunction) => {
+    try { success(res, await this.service.listCustomers()); } catch (err) { next(err); }
+  };
+
+  getCustomerById = async (req: Request, res: Response, next: NextFunction) => {
+    try { success(res, await this.service.getCustomerById(Number(req.params.id))); } catch (err) { next(err); }
+  };
+
   // ─── Roles ─────────────────────────────────────────────────────────────────
 
   listRoles = async (_req: Request, res: Response, next: NextFunction) => {

@@ -1,4 +1,4 @@
-import { PrismaClient, User, StaffProfile, StaffRole, StaffRolePermission, Permission } from '@prisma/client';
+import { PrismaClient, User, StaffProfile, StaffRole, StaffRolePermission, Permission, CustomerProfile } from '@prisma/client';
 
 export type StaffProfileWithRole = StaffProfile & {
   staffRole: StaffRole | null;
@@ -128,6 +128,22 @@ export class UserManagementRepository {
         skipDuplicates: true,
       }),
     ]);
+  }
+
+  // ─── Customers ─────────────────────────────────────────────────────────────
+
+  findAllCustomers() {
+    return this.prisma.customerProfile.findMany({
+      include: { referredBy: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  findCustomerById(id: number) {
+    return this.prisma.customerProfile.findUnique({
+      where: { id },
+      include: { referredBy: true },
+    });
   }
 
   // ─── Permissions ───────────────────────────────────────────────────────────
