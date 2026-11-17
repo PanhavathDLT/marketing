@@ -50,7 +50,7 @@ pnpm uses a virtual store (`node_modules/.pnpm/`) with symlinks. Running a fresh
 
 ```toml
 [build]
-builder = "dockerfile"        # use Dockerfile, not Railpack/Nixpacks
+builder = "DOCKERFILE"        # use Dockerfile, not Railpack/Nixpacks (must be uppercase)
 
 [deploy]
 healthcheckPath = "/health"   # Railway pings this after deploy to confirm the app is alive

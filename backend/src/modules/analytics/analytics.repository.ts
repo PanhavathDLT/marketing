@@ -41,4 +41,14 @@ export class AnalyticsRepository {
       this.prisma.checkIn.count(),
     ]);
   }
+
+  async getReferrals() {
+    return this.prisma.customerProfile.findMany({
+      where: { referredById: { not: null } },
+      include: {
+        referredBy: true,   // referrer's CustomerProfile
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 }

@@ -81,7 +81,7 @@ The API serves **three distinct consumer groups**, each with its own auth method
 |---|---|---|
 | **Admin dashboard** (web) | Email + password → JWT | `POST /auth/login` |
 | **Mobile customer** (Flutter) | Exchange LOS access token → JWT | `POST /auth/session` |
-| **LOS backend** (server-to-server) | Static API key in header | Pre-shared `X-Internal-Key` |
+| **LOS backend** (server-to-server) | `X-Client-Id` + `X-Client-Secret` headers | Pre-shared via `pnpm db:seed` |
 
 ### JWT tokens (admin & customer)
 
@@ -284,7 +284,7 @@ All points changes, newest first. Redemptions are **negative**.
     {
       "id": 11,
       "source": "MISSION",
-      "missionType": "LOAN_APPLICATION",
+      "missionType": "APPLICATION_SUBMISSION",
       "title": "Submit Your Loan Application",
       "points": 100,
       "createdAt": "2026-11-10T03:10:00.000Z"
@@ -402,7 +402,7 @@ All missions from currently active campaigns (within their date window), with pe
     },
     {
       "id": 2,
-      "type": "LOAN_APPLICATION",
+      "type": "APPLICATION_SUBMISSION",
       "title": "Submit Your Loan Application",
       "points": 100,
       "requiredCount": 1,
@@ -451,9 +451,13 @@ All missions from currently active campaigns (within their date window), with pe
 | `type` | Deep link / screen |
 |---|---|
 | `REFERRAL` | Invite / share QR sheet |
-| `LOAN_APPLICATION` | Request-a-loan screen |
+| `APPLICATION_SUBMISSION` | Request-a-loan screen |
 | `LOAN_APPROVAL` | Home (loan status card) |
 | `REPAYMENT` | Repayment screen |
+| `COMPLETE_FORM1` | Form 1 screen |
+| `COMPLETE_FORM2` | Form 2 screen |
+| `COMPLETE_FORM3` | Form 3 screen |
+| `COMPLETE_FORM4` | Form 4 screen |
 
 > **Unknown types must be hidden, not crash.** The server can add new types — handle gracefully.
 
@@ -765,10 +769,14 @@ Returns the list of available mission types. Use this to populate the type dropd
 {
   "status": "success",
   "data": [
-    { "value": "REFERRAL",         "label": "Referral" },
-    { "value": "LOAN_APPLICATION", "label": "Loan Application" },
-    { "value": "LOAN_APPROVAL",    "label": "Loan Approval" },
-    { "value": "REPAYMENT",        "label": "Repayment" }
+    { "value": "REFERRAL",               "label": "Referral" },
+    { "value": "APPLICATION_SUBMISSION", "label": "Application Submission" },
+    { "value": "LOAN_APPROVAL",          "label": "Loan Approval" },
+    { "value": "REPAYMENT",              "label": "Repayment" },
+    { "value": "COMPLETE_FORM1",         "label": "Complete Form 1" },
+    { "value": "COMPLETE_FORM2",         "label": "Complete Form 2" },
+    { "value": "COMPLETE_FORM3",         "label": "Complete Form 3" },
+    { "value": "COMPLETE_FORM4",         "label": "Complete Form 4" }
   ]
 }
 ```
@@ -1112,6 +1120,47 @@ Delete a tier.
   }
 }
 ```
+
+---
+
+### `GET /admin/analytics/referrals`
+
+Returns every referral relationship — one row per referee who applied a code. Newest first.
+
+**Success `200`**
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "referrer": {
+        "id": 1,
+        "name": "Dara Chan",
+        "phone": "012345678",
+        "referralCode": "LL7K2Q",
+        "tier": "SILVER"
+      },
+      "referee": {
+        "id": 2,
+        "name": "Sophea Kim",
+        "phone": "098765432",
+        "tier": "BRONZE"
+      },
+      "codeUsed": "LL7K2Q",
+      "linkedAt": "2026-11-10T03:10:00.000Z"
+    }
+  ]
+}
+```
+
+| Field | Notes |
+|---|---|
+| `referrer` | The customer who shared the code |
+| `referee` | The customer who applied the code |
+| `codeUsed` | The referral code that was applied |
+| `linkedAt` | When the referee applied the code |
+
+> Points earned from referrals come through the REFERRAL mission flow — not directly tied to a single referee. This table shows the referral link only.
 
 ---
 

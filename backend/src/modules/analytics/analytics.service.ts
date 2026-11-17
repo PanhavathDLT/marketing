@@ -33,4 +33,26 @@ export class AnalyticsService {
     const [totalToday, totalAllTime] = await this.repo.getCheckInCounts(today);
     return { totalToday, totalAllTime };
   }
+
+  async getReferrals() {
+    const rows = await this.repo.getReferrals();
+
+    return rows.map((referee) => ({
+      referrer: {
+        id:            referee.referredBy!.id,
+        name:          referee.referredBy!.name ?? null,
+        phone:         referee.referredBy!.phone ?? null,
+        referralCode:  referee.referredBy!.referralCode,
+        tier:          referee.referredBy!.tier,
+      },
+      referee: {
+        id:    referee.id,
+        name:  referee.name ?? null,
+        phone: referee.phone ?? null,
+        tier:  referee.tier,
+      },
+      codeUsed:  referee.referredBy!.referralCode,
+      linkedAt:  referee.createdAt,
+    }));
+  }
 }

@@ -3,20 +3,37 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Megaphone, Trophy, LogOut, Gift, Users, Layers } from "lucide-react";
+import { LayoutDashboard, Megaphone, Trophy, LogOut, Gift, Users, Layers, GitBranch, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clearAuth, useStoredUser } from "@/lib/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/campaigns", label: "Campaigns", icon: Megaphone },
-  { href: "/missions", label: "Missions", icon: Trophy },
-  { href: "/reward-store", label: "Reward Store", icon: Gift },
-  { href: "/tiers", label: "Tiers", icon: Layers },
-  { href: "/user-management", label: "User Management", icon: Users },
+const NAV_GROUPS = [
+  {
+    label: "General",
+    items: [
+      { href: "/dashboard",  label: "Dashboard", icon: LayoutDashboard },
+      { href: "/campaigns",  label: "Campaigns", icon: Megaphone },
+      { href: "/missions",   label: "Missions",  icon: Trophy },
+    ],
+  },
+  {
+    label: "Loyalty Program",
+    items: [
+      { href: "/reward-store", label: "Reward",   icon: Gift },
+      { href: "/redeem",       label: "Redeem",   icon: ShoppingBag },
+      { href: "/referral",     label: "Referral", icon: GitBranch },
+    ],
+  },
+  {
+    label: "Settings",
+    items: [
+      { href: "/tiers",           label: "Tiers",           icon: Layers },
+      { href: "/user-management", label: "User Management", icon: Users },
+    ],
+  },
 ];
 
 export function Sidebar() {
@@ -55,25 +72,34 @@ export function Sidebar() {
       <Separator className="bg-sidebar-border" />
 
       {/* Navigation */}
-      <nav className="flex flex-1 flex-col gap-1 p-3">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(href + "/");
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                active
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              )}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {label}
-            </Link>
-          );
-        })}
+      <nav className="flex flex-1 flex-col gap-4 overflow-y-auto p-3">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.label}>
+            <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {group.label}
+            </p>
+            <div className="flex flex-col gap-0.5">
+              {group.items.map(({ href, label, icon: Icon }) => {
+                const active = pathname === href || pathname.startsWith(href + "/");
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      active
+                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    {label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       <Separator className="bg-sidebar-border" />

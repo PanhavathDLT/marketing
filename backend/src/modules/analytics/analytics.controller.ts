@@ -22,4 +22,10 @@ export class AnalyticsController {
       success(res, await this.service.getCheckInStats());
     } catch (err) { next(err); }
   };
+
+  getReferrals = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.service.getReferrals());
+    } catch (err) { next(err); }
+  };
 }

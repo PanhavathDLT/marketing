@@ -16,5 +16,6 @@ const router: IRouter = Router();
 router.get('/overview',                requirePermission('ANALYTICS', 'View'), controller.getOverview);
 router.get('/campaigns/:campaignId',   requirePermission('ANALYTICS', 'View'), controller.getCampaignStats);
 router.get('/check-ins',               requirePermission('ANALYTICS', 'View'), controller.getCheckInStats);
+router.get('/referrals',               requirePermission('ANALYTICS', 'View'), controller.getReferrals);
 
 export default router;

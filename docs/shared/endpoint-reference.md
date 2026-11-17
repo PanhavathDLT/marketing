@@ -895,6 +895,45 @@ No body.
 
 ---
 
+### `GET /admin/analytics/referrals`
+No body.
+
+Returns every referral relationship — one row per referee who applied a code.
+
+**Response `200`**
+```json
+[
+  {
+    "referrer": {
+      "id": 1,
+      "name": "Dara Chan",
+      "phone": "012345678",
+      "referralCode": "LL7K2Q",
+      "tier": "SILVER"
+    },
+    "referee": {
+      "id": 2,
+      "name": "Sophea Kim",
+      "phone": "098765432",
+      "tier": "BRONZE"
+    },
+    "codeUsed": "LL7K2Q",
+    "linkedAt": "2026-11-10T03:10:00.000Z"
+  }
+]
+```
+
+| Field | Notes |
+|---|---|
+| `referrer` | The customer who shared the code |
+| `referee` | The customer who applied the code |
+| `codeUsed` | The referral code that was applied (always the referrer's code) |
+| `linkedAt` | When the referee applied the code |
+
+> Points earned from referrals are tracked via the REFERRAL mission flow — visible in each customer's points history. This table shows the referral relationship only.
+
+---
+
 ## 14. Admin — User Management — `ADMIN WEB`
 
 ---
