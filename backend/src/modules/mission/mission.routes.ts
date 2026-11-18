@@ -5,13 +5,11 @@ import { createMissionSchema, updateMissionSchema } from './mission.schema.js';
 import { MissionRepository } from './mission.repository.js';
 import { MissionService } from './mission.service.js';
 import { MissionController } from './mission.controller.js';
-import { TierRepository } from '@modules/tier/index.js';
 import prisma from '@lib/prisma.js';
 
 // ─── Composition root ─────────────────────────────────────────────────────────
 const repo = new MissionRepository(prisma);
-const tierRepo = new TierRepository(prisma);
-const service = new MissionService(repo, tierRepo);
+const service = new MissionService(repo);
 const controller = new MissionController(service);
 
 // Admin standalone routes — mounted at /api/v1/admin/missions

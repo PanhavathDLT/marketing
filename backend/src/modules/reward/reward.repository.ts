@@ -45,14 +45,13 @@ export class RewardRepository {
     customerId: number,
     referrerProfileId: number,
     bonusPoints: number,
-    newTier: string,
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       await tx.customerProfile.update({
         where: { userId: customerId },
         data: {
           referredById: referrerProfileId,
-          ...(bonusPoints > 0 && { points: { increment: bonusPoints }, tier: newTier }),
+          ...(bonusPoints > 0 && { points: { increment: bonusPoints } }),
         },
       });
       if (bonusPoints > 0) {
@@ -103,7 +102,6 @@ export class RewardRepository {
     checkInDate: Date,
     day: number,
     pts: number,
-    newTier: string,
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       await tx.checkIn.create({
@@ -115,12 +113,39 @@ export class RewardRepository {
           lastCheckInDate: checkInDate,
           currentStreakDay: day,
           points: { increment: pts },
-          tier: newTier,
         },
       });
       await tx.pointsHistory.create({
         data: { customerId, source: 'CHECK_IN', title: 'Daily check-in', points: pts },
       });
+    });
+  }
+
+  async updateLoanCycle(
+    customerId: number,
+    loanCount: number,
+    newTier: string,
+    bonusPoints: number,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      await tx.customerProfile.update({
+        where: { userId: customerId },
+        data: {
+          loanCycleCount: loanCount,
+          tier: newTier,
+          ...(bonusPoints > 0 && { points: { increment: bonusPoints } }),
+        },
+      });
+      if (bonusPoints > 0) {
+        await tx.pointsHistory.create({
+          data: {
+            customerId,
+            source: 'MISSION',
+            title: `Tier-up bonus — ${newTier}`,
+            points: bonusPoints,
+          },
+        });
+      }
     });
   }
 
@@ -179,7 +204,6 @@ export class RewardRepository {
   async performRedeem(
     customerId: number,
     rewardItem: RewardItem,
-    newTier: string,
     idempotencyKey?: string,
   ): Promise<void> {
     await this.prisma.$transaction([
@@ -189,7 +213,7 @@ export class RewardRepository {
       }),
       this.prisma.customerProfile.update({
         where: { userId: customerId },
-        data: { points: { decrement: rewardItem.points }, tier: newTier },
+        data: { points: { decrement: rewardItem.points } },
       }),
       this.prisma.redemption.create({
         data: {

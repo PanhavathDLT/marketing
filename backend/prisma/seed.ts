@@ -98,18 +98,18 @@ async function seedPermissions() {
 }
 
 const DEFAULT_TIERS = [
-  { name: 'BRONZE',   minPoints: 0    },
-  { name: 'SILVER',   minPoints: 200  },
-  { name: 'GOLD',     minPoints: 500  },
-  { name: 'PLATINUM', minPoints: 1000 },
-  { name: 'DIAMOND',  minPoints: 2000 },
+  { name: 'BRONZE',   rewardPoints: 0,    minLoanCount: 0 },
+  { name: 'SILVER',   rewardPoints: 200,  minLoanCount: 1 },
+  { name: 'GOLD',     rewardPoints: 500,  minLoanCount: 2 },
+  { name: 'PLATINUM', rewardPoints: 1000, minLoanCount: 3 },
+  { name: 'DIAMOND',  rewardPoints: 2000, minLoanCount: 5 },
 ];
 
 async function seedDefaultTiers() {
   for (const t of DEFAULT_TIERS) {
     await prisma.tierConfig.upsert({
       where: { name: t.name },
-      update: {},
+      update: { rewardPoints: t.rewardPoints, minLoanCount: t.minLoanCount },
       create: t,
     });
   }

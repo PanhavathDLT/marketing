@@ -69,6 +69,13 @@ export class RewardController {
     } catch (err) { next(err); }
   };
 
+  updateLoanCycle = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const loanCount = Number(req.body.loanCount);
+      success(res, await this.rewardService.updateLoanCycle((req.user as User).id, loanCount));
+    } catch (err) { next(err); }
+  };
+
   getMyReferralCode = async (req: Request, res: Response, next: NextFunction) => {
     try {
       success(res, await this.rewardService.getMyReferralCode((req.user as User).id));

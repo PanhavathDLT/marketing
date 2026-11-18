@@ -1,9 +1,9 @@
 import { TierConfig } from '@prisma/client';
 
-export function resolveTierName(points: number, tiers: TierConfig[]): string {
-  const sorted = [...tiers].sort((a, b) => b.minPoints - a.minPoints);
+export function resolveTierByLoanCount(loanCount: number, tiers: TierConfig[]): string {
+  const sorted = [...tiers].sort((a, b) => b.minLoanCount - a.minLoanCount);
   for (const t of sorted) {
-    if (points >= t.minPoints) return t.name;
+    if (loanCount >= t.minLoanCount) return t.name;
   }
   return sorted[sorted.length - 1]?.name ?? 'BRONZE';
 }

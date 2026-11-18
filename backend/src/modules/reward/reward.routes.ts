@@ -1,4 +1,6 @@
 import { Router, IRouter } from 'express';
+import { validate } from '@shared/middleware/validate.middleware.js';
+import { z } from 'zod';
 import { RewardRepository } from './reward.repository.js';
 import { RewardService } from './reward.service.js';
 import { RewardController } from './reward.controller.js';
@@ -16,7 +18,7 @@ const rewardRepo = new RewardRepository(prisma);
 const rewardService = new RewardService(rewardRepo, tierRepo, settingsRepo);
 
 const missionRepo = new MissionRepository(prisma);
-const missionService = new MissionService(missionRepo, tierRepo);
+const missionService = new MissionService(missionRepo);
 
 export const rewardController = new RewardController(rewardService, missionService);
 
@@ -32,5 +34,6 @@ router.post('/missions/:missionId/claim', rewardController.claimMission);
 router.get('/store', rewardController.getStore);
 router.post('/store/:rewardId/redeem', rewardController.redeemReward);
 router.get('/my-rewards', rewardController.getMyRewards);
+router.patch('/loan-cycle', validate(z.object({ loanCount: z.number().int().min(0) })), rewardController.updateLoanCycle);
 
 export default router;

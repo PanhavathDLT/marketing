@@ -5,7 +5,7 @@ export class TierRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   findAll(): Promise<TierConfig[]> {
-    return this.prisma.tierConfig.findMany({ orderBy: { minPoints: 'asc' } });
+    return this.prisma.tierConfig.findMany({ orderBy: { minLoanCount: 'asc' } });
   }
 
   findById(id: number): Promise<TierConfig | null> {

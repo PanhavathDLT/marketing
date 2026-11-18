@@ -116,7 +116,7 @@ export class MissionRepository {
     });
   }
 
-  async claimMission(customerId: number, mission: Mission, newTier: string): Promise<void> {
+  async claimMission(customerId: number, mission: Mission): Promise<void> {
     await this.prisma.$transaction([
       this.prisma.customerMission.update({
         where: { customerId_missionId: { customerId, missionId: mission.id } },
@@ -124,7 +124,7 @@ export class MissionRepository {
       }),
       this.prisma.customerProfile.update({
         where: { userId: customerId },
-        data: { points: { increment: mission.points }, tier: newTier },
+        data: { points: { increment: mission.points } },
       }),
       this.prisma.pointsHistory.create({
         data: {

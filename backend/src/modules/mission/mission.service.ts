@@ -2,13 +2,9 @@ import { AppError } from '@shared/errors/AppError.js';
 import { CreateMissionInput, UpdateMissionInput } from './mission.schema.js';
 import { MissionRepository } from './mission.repository.js';
 import { toMissionDTO, toCustomerMissionDTO, MissionDTO, CustomerMissionDTO } from './mission.mapper.js';
-import { TierRepository, resolveTierName } from '@modules/tier/index.js';
 
 export class MissionService {
-  constructor(
-    private readonly repo: MissionRepository,
-    private readonly tierRepo: TierRepository,
-  ) {}
+  constructor(private readonly repo: MissionRepository) {}
 
   async getMissionsForCampaign(campaignId: number): Promise<MissionDTO[]> {
     return (await this.repo.findByCampaignId(campaignId)).map(toMissionDTO);
@@ -52,13 +48,6 @@ export class MissionService {
       throw new AppError('Mission is not claimable', 409);
     }
 
-    const [user, tiers] = await Promise.all([
-      this.repo.findUser(customerId),
-      this.tierRepo.findAll(),
-    ]);
-    if (!user) throw new AppError('User not found', 404);
-    if (!user.customerProfile) throw new AppError('Customer profile not found', 404);
-    const newTier = resolveTierName(user.customerProfile.points + mission.points, tiers);
-    await this.repo.claimMission(customerId, mission, newTier);
+    await this.repo.claimMission(customerId, mission);
   }
 }

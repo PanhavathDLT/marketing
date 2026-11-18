@@ -59,7 +59,8 @@ export function TiersTable() {
               <thead>
                 <tr className="border-b border-border bg-muted/40">
                   <th className="px-6 py-3 text-left font-medium text-muted-foreground">Tier</th>
-                  <th className="px-6 py-3 text-left font-medium text-muted-foreground">Min Points</th>
+                  <th className="px-6 py-3 text-left font-medium text-muted-foreground">Min Loans</th>
+                  <th className="px-6 py-3 text-left font-medium text-muted-foreground">Reward Points</th>
                   <th className="px-6 py-3 text-left font-medium text-muted-foreground">Created</th>
                   <th className="px-6 py-3 text-right font-medium text-muted-foreground">Actions</th>
                 </tr>
@@ -68,7 +69,7 @@ export function TiersTable() {
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i} className="border-b border-border">
-                      {Array.from({ length: 4 }).map((_, j) => (
+                      {Array.from({ length: 5 }).map((_, j) => (
                         <td key={j} className="px-6 py-4">
                           <div className="h-4 w-full animate-pulse rounded bg-muted" />
                         </td>
@@ -77,7 +78,7 @@ export function TiersTable() {
                   ))
                 ) : tiers.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-10 text-center">
+                    <td colSpan={5} className="px-6 py-10 text-center">
                       <div className="flex flex-col items-center gap-2 text-muted-foreground">
                         <Layers className="h-6 w-6" />
                         <p className="text-sm">No tiers yet. Create your first tier.</p>
@@ -104,8 +105,11 @@ export function TiersTable() {
                           <span className="font-medium text-foreground">{tier.name}</span>
                         </div>
                       </td>
+                      <td className="px-6 py-4 text-muted-foreground">
+                        {tier.minLoanCount} loans
+                      </td>
                       <td className="px-6 py-4 font-semibold text-brand">
-                        {tier.minPoints.toLocaleString()} pts
+                        {tier.rewardPoints.toLocaleString()} pts
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
                         {new Date(tier.createdAt).toLocaleDateString()}

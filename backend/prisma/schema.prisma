@@ -70,6 +70,7 @@ model CustomerProfile {
   phone            String?           @unique
   points           Int               @default(0)
   tier             String            @default("BRONZE")
+  loanCycleCount   Int               @default(0)
   lastCheckInDate  DateTime?         @db.Date
   currentStreakDay Int               @default(0)
   referralCode     String            @unique
@@ -219,12 +220,13 @@ model MachineClient {
 }
 
 model TierConfig {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  minPoints Int      @default(0)
-  iconUrl   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  rewardPoints  Int      @default(0)   // bonus points auto-awarded when customer reaches this tier
+  minLoanCount  Int      @default(0)   // minimum loan cycles needed to reach this tier
+  iconUrl       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Redemption {

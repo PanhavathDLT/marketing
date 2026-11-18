@@ -14,7 +14,7 @@ export function useTiers() {
     setError(null);
     try {
       const data = await tiersApi.list();
-      setTiers(data);
+      setTiers(data.sort((a, b) => a.minLoanCount - b.minLoanCount));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load tiers");
     } finally {
@@ -28,14 +28,14 @@ export function useTiers() {
 
   async function createTier(payload: TierPayload) {
     const created = await tiersApi.create(payload);
-    setTiers((prev) => [...prev, created].sort((a, b) => a.minPoints - b.minPoints));
+    setTiers((prev) => [...prev, created].sort((a, b) => a.minLoanCount - b.minLoanCount));
     return created;
   }
 
   async function updateTier(id: number, payload: Partial<TierPayload>) {
     const updated = await tiersApi.update(id, payload);
     setTiers((prev) =>
-      prev.map((t) => (t.id === id ? updated : t)).sort((a, b) => a.minPoints - b.minPoints)
+      prev.map((t) => (t.id === id ? updated : t)).sort((a, b) => a.minLoanCount - b.minLoanCount)
     );
     return updated;
   }

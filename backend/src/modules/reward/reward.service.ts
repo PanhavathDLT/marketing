@@ -2,7 +2,7 @@ import { AppError } from '@shared/errors/AppError.js';
 import { RewardRepository } from './reward.repository.js';
 import { toPointsDTO, toStoreItemDTO, toRedemptionDTO, PointsDTO, StoreItemDTO, RedemptionDTO } from './reward.mapper.js';
 import { CHECK_IN_POINTS, CYCLE_LENGTH, TIMEZONE } from './reward.config.js';
-import { TierRepository, resolveTierName } from '@modules/tier/index.js';
+import { TierRepository, resolveTierByLoanCount } from '@modules/tier/index.js';
 import { SettingsRepository } from '@modules/settings/settings.repository.js';
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
@@ -75,7 +75,7 @@ export class RewardService {
   }
 
   async checkIn(customerId: number): Promise<void> {
-    const [user, tiers] = await Promise.all([this.repo.findUser(customerId), this.tierRepo.findAll()]);
+    const user = await this.repo.findUser(customerId);
     if (!user) throw new AppError('User not found', 404);
     if (!user.customerProfile) throw new AppError('Customer profile not found', 404);
     const { checkedToday, todayDay } = resolveStreak(
@@ -85,9 +85,8 @@ export class RewardService {
     if (checkedToday) throw new AppError('You have already checked in today.', 409);
 
     const pts = CHECK_IN_POINTS[todayDay - 1];
-    const newTier = resolveTierName(user.customerProfile.points + pts, tiers);
     const checkInDate = new Date(`${todayInPhnomPenh()}T00:00:00+07:00`);
-    await this.repo.performCheckIn(customerId, checkInDate, todayDay, pts, newTier);
+    await this.repo.performCheckIn(customerId, checkInDate, todayDay, pts);
   }
 
   async getStore(): Promise<StoreItemDTO[]> {
@@ -115,9 +114,25 @@ export class RewardService {
       throw new AppError('You do not have enough points for this reward.', 422);
     }
 
-    const tiers = await this.tierRepo.findAll();
-    const newTier = resolveTierName(user.customerProfile.points - item.points, tiers);
-    await this.repo.performRedeem(customerId, item, newTier, idempotencyKey);
+    await this.repo.performRedeem(customerId, item, idempotencyKey);
+  }
+
+  async updateLoanCycle(customerId: number, loanCount: number) {
+    const [user, tiers] = await Promise.all([
+      this.repo.findUser(customerId),
+      this.tierRepo.findAll(),
+    ]);
+    if (!user) throw new AppError('User not found', 404);
+    if (!user.customerProfile) throw new AppError('Customer profile not found', 404);
+
+    const newTierName = resolveTierByLoanCount(loanCount, tiers);
+    const currentTier = tiers.find((t) => t.name === user.customerProfile!.tier);
+    const newTier = tiers.find((t) => t.name === newTierName);
+    const isTierUp = (newTier?.minLoanCount ?? 0) > (currentTier?.minLoanCount ?? 0);
+    const bonusPoints = isTierUp ? (newTier?.rewardPoints ?? 0) : 0;
+
+    await this.repo.updateLoanCycle(customerId, loanCount, newTierName, bonusPoints);
+    return { loanCycleCount: loanCount, tier: newTierName, bonusPointsAwarded: bonusPoints };
   }
 
   async getMyReferralCode(customerId: number) {
@@ -141,16 +156,10 @@ export class RewardService {
     const referrer = await this.repo.findUserByReferralCode(code);
     if (!referrer) throw new AppError('Referral code not found.', 404);
 
-    const [config, tiers] = await Promise.all([
-      this.settingsRepo.getReferralConfig(),
-      this.tierRepo.findAll(),
-    ]);
+    const config = await this.settingsRepo.getReferralConfig();
     const bonusPoints = config?.refereeBonus ?? 0;
-    const newTier = bonusPoints > 0
-      ? resolveTierName(customer.customerProfile.points + bonusPoints, tiers)
-      : customer.customerProfile.tier;
 
-    await this.repo.applyReferralCodeWithBonus(customerId, referrer.id, bonusPoints, newTier);
+    await this.repo.applyReferralCodeWithBonus(customerId, referrer.id, bonusPoints);
     return { referrerName: referrer.name ?? 'Unknown', bonusPoints };
   }
 }

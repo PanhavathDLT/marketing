@@ -6,8 +6,8 @@ export type PointsDTO = {
   tier: string;
   tierName: string;
   nextTierName: string | null;
-  pointsToNextTier: number;
-  progress: number;
+  loanCycleCount: number;
+  loansToNextTier: number | null;
 };
 
 export type StoreItemDTO = {
@@ -27,24 +27,22 @@ export type RedemptionDTO = {
 };
 
 export function toPointsDTO(profile: CustomerProfile, tiers: TierConfig[]): PointsDTO {
-  const sorted = [...tiers].sort((a, b) => a.minPoints - b.minPoints);
+  const sorted = [...tiers].sort((a, b) => a.minLoanCount - b.minLoanCount);
   let currentIdx = 0;
   for (let i = 0; i < sorted.length; i++) {
-    if (profile.points >= sorted[i].minPoints) currentIdx = i;
+    if (profile.loanCycleCount >= sorted[i].minLoanCount) currentIdx = i;
   }
   const current = sorted[currentIdx];
   const next = sorted[currentIdx + 1] ?? null;
-  const pointsToNextTier = next ? Math.max(next.minPoints - profile.points, 0) : 0;
-  const range = next ? next.minPoints - current.minPoints : 1;
-  const progress = next ? Math.min((profile.points - current.minPoints) / range, 1) : 1;
+  const loansToNextTier = next ? Math.max(next.minLoanCount - profile.loanCycleCount, 0) : null;
 
   return {
     points: profile.points,
     tier: current.name,
     tierName: current.name.charAt(0) + current.name.slice(1).toLowerCase(),
     nextTierName: next ? next.name.charAt(0) + next.name.slice(1).toLowerCase() : null,
-    pointsToNextTier,
-    progress: parseFloat(progress.toFixed(3)),
+    loanCycleCount: profile.loanCycleCount,
+    loansToNextTier,
   };
 }
 
