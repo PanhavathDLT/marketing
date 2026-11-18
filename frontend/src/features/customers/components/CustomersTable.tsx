@@ -30,6 +30,7 @@ export function CustomersTable() {
                 <th className="px-6 py-3 text-left font-medium text-muted-foreground">Name</th>
                 <th className="px-6 py-3 text-left font-medium text-muted-foreground">Phone</th>
                 <th className="px-6 py-3 text-left font-medium text-muted-foreground">Tier</th>
+                <th className="px-6 py-3 text-left font-medium text-muted-foreground">Loan Cycles</th>
                 <th className="px-6 py-3 text-left font-medium text-muted-foreground">Points</th>
                 <th className="px-6 py-3 text-left font-medium text-muted-foreground">Referral Code</th>
                 <th className="px-6 py-3 text-left font-medium text-muted-foreground">Referred By</th>
@@ -40,7 +41,7 @@ export function CustomersTable() {
               {loading ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i} className="border-b border-border">
-                    {Array.from({ length: 7 }).map((_, j) => (
+                    {Array.from({ length: 8 }).map((_, j) => (
                       <td key={j} className="px-6 py-4">
                         <div className="h-4 w-full animate-pulse rounded bg-muted" />
                       </td>
@@ -49,7 +50,7 @@ export function CustomersTable() {
                 ))
               ) : customers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center">
+                  <td colSpan={8} className="px-6 py-10 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <Users className="h-6 w-6" />
                       <p className="text-sm">No customers yet.</p>
@@ -63,6 +64,9 @@ export function CustomersTable() {
                     <td className="px-6 py-4 text-muted-foreground">{c.phone}</td>
                     <td className="px-6 py-4">
                       <Badge variant={TIER_VARIANT[c.tier] ?? "secondary"}>{c.tier}</Badge>
+                    </td>
+                    <td className="px-6 py-4 text-muted-foreground">
+                      {c.loanCount}
                     </td>
                     <td className="px-6 py-4 font-semibold text-brand">
                       {c.points.toLocaleString()} pts

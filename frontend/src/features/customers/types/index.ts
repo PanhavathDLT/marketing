@@ -11,6 +11,7 @@ export interface Customer {
   phone: string;
   points: number;
   tier: string;
+  loanCount: number;
   referralCode: string;
   referredBy: ReferredBy | null;
   joinedAt: string;

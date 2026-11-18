@@ -77,6 +77,7 @@ export type CustomerDTO = {
   phone: string | null;
   points: number;
   tier: string;
+  loanCycleCount: number;
   referralCode: string;
   referredBy: { id: number; name: string | null; referralCode: string } | null;
   joinedAt: string;
@@ -94,6 +95,7 @@ export function toCustomerDTO(cp: CustomerProfileWithReferrer): CustomerDTO {
     phone: cp.phone,
     points: cp.points,
     tier: cp.tier,
+    loanCycleCount: cp.loanCycleCount,
     referralCode: cp.referralCode,
     referredBy: cp.referredBy
       ? { id: cp.referredBy.id, name: cp.referredBy.name, referralCode: cp.referredBy.referralCode }
