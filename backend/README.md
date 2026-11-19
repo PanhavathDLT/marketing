@@ -268,3 +268,7 @@ openssl rand -hex 32
 pnpm db:seed
 
 ```
+# Database Command
+
+pnpm db:migrate
+pnpm db:seed

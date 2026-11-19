@@ -100,9 +100,7 @@ async function seedPermissions() {
 const DEFAULT_TIERS = [
   { name: 'BRONZE',   rewardPoints: 0,    minLoanCount: 0 },
   { name: 'SILVER',   rewardPoints: 200,  minLoanCount: 1 },
-  { name: 'GOLD',     rewardPoints: 500,  minLoanCount: 2 },
-  { name: 'PLATINUM', rewardPoints: 1000, minLoanCount: 3 },
-  { name: 'DIAMOND',  rewardPoints: 2000, minLoanCount: 5 },
+  { name: 'GOLD',     rewardPoints: 500,  minLoanCount: 10 },
 ];
 
 async function seedDefaultTiers() {

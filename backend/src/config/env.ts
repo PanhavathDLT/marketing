@@ -20,13 +20,20 @@ const envSchema = z.object({
   LOS_ISSUER: z.string().default('los-backend'),
   LOS_CUSTOMER_AUDIENCE: z.string().default('luyleun'),
   // Storage
-  STORAGE_DRIVER: z.enum(['local', 'cloudinary', 'db']).default('db'),
+  STORAGE_DRIVER: z.enum(['local', 'cloudinary', 'db', 's3']).default('db'),
   APP_URL: z.string().url().default('http://localhost:3000'),
 
   // Cloudinary (required only when STORAGE_DRIVER=cloudinary)
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),
+
+  // S3-compatible (Neon Object Storage) — required when STORAGE_DRIVER=s3
+  AWS_ENDPOINT_URL_S3: z.string().url().optional(),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
+  AWS_REGION: z.string().optional(),
+  AWS_S3_BUCKET: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
