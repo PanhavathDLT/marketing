@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Megaphone, Trophy, LogOut, Gift, Users, Layers, GitBranch, ShoppingBag, Settings, UserCircle, UsersRound, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Megaphone, Trophy, LogOut, Gift, Users, Layers, GitBranch, ShoppingBag, Settings, UserCircle, UsersRound, ShieldCheck, Flame, CalendarCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clearAuth, useStoredUser } from "@/lib/auth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -25,6 +25,13 @@ const NAV_GROUPS = [
       { href: "/reward-store", label: "Reward",   icon: Gift },
       { href: "/redeem",       label: "Redeem",   icon: ShoppingBag },
       { href: "/referral",     label: "Referral", icon: GitBranch },
+    ],
+  },
+  {
+    label: "Streak",
+    items: [
+      { href: "/streak/customers", label: "Customer Streaks", icon: Flame },
+      { href: "/streak/config",    label: "Check-in Config",  icon: CalendarCheck },
     ],
   },
   {

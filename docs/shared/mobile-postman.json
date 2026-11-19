@@ -82,7 +82,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["customer", "reward", "points"]
             },
-            "description": "Returns current points, tier, next tier, and progress percentage."
+            "description": "Returns current points, tier, loan cycle count, and loans remaining to reach the next tier."
           }
         },
         {
@@ -97,7 +97,28 @@
               "host": ["{{baseUrl}}"],
               "path": ["customer", "reward", "points", "history"]
             },
-            "description": "Returns a list of point transactions (earned from missions, spent on redemptions)."
+            "description": "Returns a list of point transactions (earned from missions, check-ins, referrals; spent on redemptions)."
+          }
+        },
+        {
+          "name": "Update loan cycle count",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/reward/loan-cycle",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "reward", "loan-cycle"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loanCount\": 2\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Push the customer's total completed loan count from LOS. The backend resolves the new tier from this count. If the customer moves to a higher tier, bonus points are awarded automatically and recorded in points history.\n\nCall this whenever LOS confirms a loan cycle has been completed.\n\nReturns: { loanCycleCount, tier, bonusPointsAwarded }"
           }
         }
       ]
@@ -117,7 +138,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["customer", "reward", "check-in"]
             },
-            "description": "Returns current streak, whether the customer can check in today, and the 7-day calendar."
+            "description": "Returns current streak, whether the customer can check in today, next reset time, and the 7-day calendar with per-day points."
           }
         },
         {
@@ -138,7 +159,7 @@
               "raw": "{}",
               "options": { "raw": { "language": "json" } }
             },
-            "description": "Perform today's check-in. Returns 409 if already checked in today."
+            "description": "Perform today's check-in. Awards points for the current streak day. Returns 409 if already checked in today."
           }
         }
       ]
@@ -183,6 +204,174 @@
               "options": { "raw": { "language": "json" } }
             },
             "description": "Claim points for a CLAIMABLE mission. Returns 409 if mission is not in CLAIMABLE state."
+          }
+        },
+        {
+          "name": "Trigger mission progress — REFERRAL",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/missions/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "missions", "complete"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"missionType\": \"REFERRAL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Fire when a referred friend successfully applies for a loan. Increments the referrer's REFERRAL mission progress."
+          }
+        },
+        {
+          "name": "Trigger mission progress — APPLICATION_SUBMISSION",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/missions/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "missions", "complete"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"missionType\": \"APPLICATION_SUBMISSION\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Fire when the customer submits a loan application."
+          }
+        },
+        {
+          "name": "Trigger mission progress — LOAN_APPROVAL",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/missions/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "missions", "complete"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"missionType\": \"LOAN_APPROVAL\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Fire when the customer's loan application is approved."
+          }
+        },
+        {
+          "name": "Trigger mission progress — REPAYMENT",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/missions/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "missions", "complete"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"missionType\": \"REPAYMENT\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Fire each time the customer makes an on-time repayment. If the mission requiredCount is 3, call this 3 times before the mission becomes CLAIMABLE."
+          }
+        },
+        {
+          "name": "Trigger mission progress — COMPLETE_FORM1",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/missions/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "missions", "complete"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"missionType\": \"COMPLETE_FORM1\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Fire when the customer completes Form 1."
+          }
+        },
+        {
+          "name": "Trigger mission progress — COMPLETE_FORM2",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/missions/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "missions", "complete"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"missionType\": \"COMPLETE_FORM2\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Fire when the customer completes Form 2."
+          }
+        },
+        {
+          "name": "Trigger mission progress — COMPLETE_FORM3",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/missions/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "missions", "complete"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"missionType\": \"COMPLETE_FORM3\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Fire when the customer completes Form 3."
+          }
+        },
+        {
+          "name": "Trigger mission progress — COMPLETE_FORM4",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/missions/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["customer", "missions", "complete"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"missionType\": \"COMPLETE_FORM4\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Fire when the customer completes Form 4."
           }
         }
       ]
@@ -341,7 +530,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["customer", "tiers"]
             },
-            "description": "Returns all tiers with their minimum point thresholds. Use this to render the tier progress UI."
+            "description": "Returns all tiers with their minimum loan count thresholds and reward points. Use this to render the tier progress UI."
           }
         }
       ]

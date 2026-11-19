@@ -51,4 +51,21 @@ export class AnalyticsRepository {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async getCheckInCustomers() {
+    // Customers who have at least one check-in
+    return this.prisma.customerProfile.findMany({
+      where: { lastCheckInDate: { not: null } },
+      include: {
+        user: {
+          select: {
+            checkIns: {
+              select: { id: true },
+            },
+          },
+        },
+      },
+      orderBy: { lastCheckInDate: 'desc' },
+    });
+  }
 }

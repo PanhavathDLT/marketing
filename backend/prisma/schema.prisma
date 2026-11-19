@@ -253,7 +253,20 @@ model StoredFile {
 }
 
 model ReferralConfig {
-  id           Int      @id @default(autoincrement())
-  refereeBonus Int      @default(0)   // points auto-awarded to the referee on code apply
-  updatedAt    DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  refereeBonus  Int      @default(0)   // points auto-awarded to the referee (Customer B) on code apply
+  referrerBonus Int      @default(0)   // points auto-awarded to the referrer (Customer A) when no active REFERRAL mission
+  updatedAt     DateTime @updatedAt
+}
+
+model CheckInConfig {
+  id        Int      @id @default(autoincrement())
+  day1      Int      @default(20)
+  day2      Int      @default(20)
+  day3      Int      @default(20)
+  day4      Int      @default(20)
+  day5      Int      @default(20)
+  day6      Int      @default(20)
+  day7      Int      @default(60)
+  updatedAt DateTime @updatedAt
 }

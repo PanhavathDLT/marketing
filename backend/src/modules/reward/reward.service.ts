@@ -1,9 +1,10 @@
 import { AppError } from '@shared/errors/AppError.js';
 import { RewardRepository } from './reward.repository.js';
 import { toPointsDTO, toStoreItemDTO, toRedemptionDTO, PointsDTO, StoreItemDTO, RedemptionDTO } from './reward.mapper.js';
-import { CHECK_IN_POINTS, CYCLE_LENGTH, TIMEZONE } from './reward.config.js';
+import { TIMEZONE } from './reward.config.js';
 import { TierRepository, resolveTierByLoanCount } from '@modules/tier/index.js';
 import { SettingsRepository } from '@modules/settings/settings.repository.js';
+import { MissionRepository } from '@modules/mission/mission.repository.js';
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 
@@ -25,7 +26,7 @@ function resolveStreak(lastCheckInDate: Date | null, currentStreakDay: number) {
 
   const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('en-CA', { timeZone: TIMEZONE });
   if (last === yesterday) {
-    if (currentStreakDay >= CYCLE_LENGTH) return { streak: 0, todayDay: 1, checkedToday: false };
+    if (currentStreakDay >= 7) return { streak: 0, todayDay: 1, checkedToday: false };
     return { streak: currentStreakDay, todayDay: currentStreakDay + 1, checkedToday: false };
   }
 
@@ -39,6 +40,7 @@ export class RewardService {
     private readonly repo: RewardRepository,
     private readonly tierRepo: TierRepository,
     private readonly settingsRepo: SettingsRepository,
+    private readonly missionRepo: MissionRepository,
   ) {}
 
   async getPoints(customerId: number): Promise<PointsDTO> {
@@ -53,9 +55,15 @@ export class RewardService {
   }
 
   async getCheckIn(customerId: number) {
-    const user = await this.repo.findUser(customerId);
+    const [user, config] = await Promise.all([
+      this.repo.findUser(customerId),
+      this.settingsRepo.getCheckInConfig(),
+    ]);
     if (!user) throw new AppError('User not found', 404);
     if (!user.customerProfile) throw new AppError('Customer profile not found', 404);
+    if (!config) throw new AppError('Check-in config not found', 404);
+
+    const checkInPoints = [config.day1, config.day2, config.day3, config.day4, config.day5, config.day6, config.day7];
     const { streak, todayDay, checkedToday } = resolveStreak(
       user.customerProfile.lastCheckInDate,
       user.customerProfile.currentStreakDay,
@@ -65,7 +73,7 @@ export class RewardService {
       streakDays: streak,
       canCheckInToday: !checkedToday,
       nextResetAt: nextMidnightPhnomPenh().toISOString(),
-      days: CHECK_IN_POINTS.map((pts, i) => ({
+      days: checkInPoints.map((pts, i) => ({
         day: i + 1,
         points: pts,
         isChecked: i + 1 <= streak,
@@ -75,17 +83,24 @@ export class RewardService {
   }
 
   async checkIn(customerId: number): Promise<void> {
-    const user = await this.repo.findUser(customerId);
+    const [user, config] = await Promise.all([
+      this.repo.findUser(customerId),
+      this.settingsRepo.getCheckInConfig(),
+    ]);
     if (!user) throw new AppError('User not found', 404);
     if (!user.customerProfile) throw new AppError('Customer profile not found', 404);
+    if (!config) throw new AppError('Check-in config not found', 404);
+
+    const checkInPoints = [config.day1, config.day2, config.day3, config.day4, config.day5, config.day6, config.day7];
     const { checkedToday, todayDay } = resolveStreak(
       user.customerProfile.lastCheckInDate,
       user.customerProfile.currentStreakDay,
     );
     if (checkedToday) throw new AppError('You have already checked in today.', 409);
 
-    const pts = CHECK_IN_POINTS[todayDay - 1];
-    const checkInDate = new Date(`${todayInPhnomPenh()}T00:00:00+07:00`);
+    const pts = checkInPoints[todayDay - 1];
+    // UTC midnight of the PP date — Postgres @db.Date receives exactly the right date regardless of server timezone
+    const checkInDate = new Date(`${todayInPhnomPenh()}T00:00:00.000Z`);
     await this.repo.performCheckIn(customerId, checkInDate, todayDay, pts);
   }
 
@@ -156,10 +171,29 @@ export class RewardService {
     const referrer = await this.repo.findUserByReferralCode(code);
     if (!referrer) throw new AppError('Referral code not found.', 404);
 
-    const config = await this.settingsRepo.getReferralConfig();
-    const bonusPoints = config?.refereeBonus ?? 0;
+    const [config, activeMissions] = await Promise.all([
+      this.settingsRepo.getReferralConfig(),
+      this.missionRepo.findActiveMissionsByType('REFERRAL'),
+    ]);
 
-    await this.repo.applyReferralCodeWithBonus(customerId, referrer.id, bonusPoints);
-    return { referrerName: referrer.name ?? 'Unknown', bonusPoints };
+    const refereeBonus = config?.refereeBonus ?? 0;
+    // Referrer gets auto bonus from config only when no active REFERRAL mission exists.
+    // When a mission is active, the referrer earns points by completing and claiming it.
+    const referrerBonus = activeMissions.length === 0 ? (config?.referrerBonus ?? 0) : 0;
+
+    await this.repo.applyReferralCodeWithBonus(
+      customerId,
+      referrer.id,
+      referrer.userId,
+      refereeBonus,
+      referrerBonus,
+    );
+
+    // Record mission progress for the referrer against every active REFERRAL mission
+    for (const mission of activeMissions) {
+      await this.missionRepo.recordProgress(referrer.userId, mission);
+    }
+
+    return { referrerName: referrer.name ?? 'Unknown', refereeBonus, referrerBonus };
   }
 }

@@ -1,4 +1,5 @@
 export type MissionType = string; // dynamic — fetch from GET /admin/missions/types
+export type MissionStatus = "UPCOMING" | "ACTIVE" | "COMPLETED";
 
 export interface MissionTypeOption {
   value: string;
@@ -10,6 +11,7 @@ export interface Mission {
   campaignId: number;
   type: MissionType;
   title: string;
+  status: MissionStatus;
   points: number;
   requiredCount: number;
   startDate: string;

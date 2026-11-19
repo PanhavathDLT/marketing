@@ -42,25 +42,44 @@ export class RewardRepository {
   }
 
   async applyReferralCodeWithBonus(
-    customerId: number,
-    referrerProfileId: number,
-    bonusPoints: number,
+    customerId: number,       // referee's User.id
+    referrerProfileId: number, // referrer's CustomerProfile.id
+    referrerUserId: number,   // referrer's User.id
+    refereeBonus: number,
+    referrerBonus: number,
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
+      // Link referee and award referee bonus
       await tx.customerProfile.update({
         where: { userId: customerId },
         data: {
           referredById: referrerProfileId,
-          ...(bonusPoints > 0 && { points: { increment: bonusPoints } }),
+          ...(refereeBonus > 0 && { points: { increment: refereeBonus } }),
         },
       });
-      if (bonusPoints > 0) {
+      if (refereeBonus > 0) {
         await tx.pointsHistory.create({
           data: {
             customerId,
             source: 'REFERRAL',
             title: 'Referral joining bonus',
-            points: bonusPoints,
+            points: refereeBonus,
+          },
+        });
+      }
+
+      // Award referrer auto bonus (only when no active REFERRAL mission)
+      if (referrerBonus > 0) {
+        await tx.customerProfile.update({
+          where: { id: referrerProfileId },
+          data: { points: { increment: referrerBonus } },
+        });
+        await tx.pointsHistory.create({
+          data: {
+            customerId: referrerUserId,
+            source: 'REFERRAL',
+            title: 'Referral bonus',
+            points: referrerBonus,
           },
         });
       }

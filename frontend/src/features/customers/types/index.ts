@@ -7,11 +7,11 @@ export interface ReferredBy {
 export interface Customer {
   id: number;
   userId: number;
-  name: string;
+  name: string | null;
   phone: string;
   points: number;
   tier: string;
-  loanCount: number;
+  loanCycleCount: number;
   referralCode: string;
   referredBy: ReferredBy | null;
   joinedAt: string;

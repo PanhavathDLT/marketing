@@ -34,6 +34,20 @@ export class AnalyticsService {
     return { totalToday, totalAllTime };
   }
 
+  async getCheckInCustomers() {
+    const rows = await this.repo.getCheckInCustomers();
+    return rows.map((cp) => ({
+      customerId:       cp.id,
+      name:             cp.name ?? null,
+      phone:            cp.phone ?? null,
+      tier:             cp.tier,
+      points:           cp.points,
+      currentStreakDay: cp.currentStreakDay,
+      lastCheckInDate:  cp.lastCheckInDate,
+      totalCheckIns:    cp.user.checkIns.length,
+    }));
+  }
+
   async getReferrals() {
     const rows = await this.repo.getReferrals();
 

@@ -60,13 +60,15 @@ export function CustomersTable() {
               ) : (
                 customers.map((c) => (
                   <tr key={c.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                    <td className="px-6 py-4 font-medium text-foreground">{c.name}</td>
+                    <td className="px-6 py-4 font-medium text-foreground">
+                      {c.name ?? <span className="text-muted-foreground">—</span>}
+                    </td>
                     <td className="px-6 py-4 text-muted-foreground">{c.phone}</td>
                     <td className="px-6 py-4">
                       <Badge variant={TIER_VARIANT[c.tier] ?? "secondary"}>{c.tier}</Badge>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">
-                      {c.loanCount}
+                      {c.loanCycleCount}
                     </td>
                     <td className="px-6 py-4 font-semibold text-brand">
                       {c.points.toLocaleString()} pts

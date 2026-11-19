@@ -23,6 +23,12 @@ export class AnalyticsController {
     } catch (err) { next(err); }
   };
 
+  getCheckInCustomers = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.service.getCheckInCustomers());
+    } catch (err) { next(err); }
+  };
+
   getReferrals = async (_req: Request, res: Response, next: NextFunction) => {
     try {
       success(res, await this.service.getReferrals());

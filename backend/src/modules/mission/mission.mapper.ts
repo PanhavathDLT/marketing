@@ -1,5 +1,14 @@
 import { Mission, CustomerMission, MissionStatus, MissionType } from '@prisma/client';
 
+export type MissionActiveStatus = 'UPCOMING' | 'ACTIVE' | 'COMPLETED';
+
+export function computeMissionStatus(mission: Mission): MissionActiveStatus {
+  const now = new Date();
+  if (mission.startDate > now) return 'UPCOMING';
+  if (mission.endDate < now) return 'COMPLETED';
+  return 'ACTIVE';
+}
+
 export type MissionDTO = {
   id: number;
   campaignId: number;
@@ -10,6 +19,7 @@ export type MissionDTO = {
   startDate: string;
   endDate: string;
   iconUrl: string | null;
+  status: MissionActiveStatus;
 };
 
 export type CustomerMissionDTO = {
@@ -36,6 +46,7 @@ export function toMissionDTO(mission: Mission): MissionDTO {
     startDate: mission.startDate.toISOString(),
     endDate: mission.endDate.toISOString(),
     iconUrl: mission.iconUrl,
+    status: computeMissionStatus(mission),
   };
 }
 

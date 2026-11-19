@@ -149,12 +149,25 @@ async function seedReferralConfig() {
   console.log(`✔ Seeded ReferralConfig (refereeBonus=50)`);
 }
 
+async function seedCheckInConfig() {
+  const existing = await prisma.checkInConfig.findFirst();
+  if (existing) {
+    console.log(`• CheckInConfig already exists, skipping`);
+    return;
+  }
+  await prisma.checkInConfig.create({
+    data: { day1: 20, day2: 20, day3: 20, day4: 20, day5: 20, day6: 20, day7: 60 },
+  });
+  console.log(`✔ Seeded CheckInConfig (20,20,20,20,20,20,60)`);
+}
+
 async function main() {
   await seedAdmin();
   await seedPermissions();
   await seedDefaultTiers();
   await seedMachineClients();
   await seedReferralConfig();
+  await seedCheckInConfig();
 }
 
 main()

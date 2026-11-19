@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { campaignsApi } from "@/features/campaigns/api/campaignsApi";
 import type { Campaign } from "@/features/campaigns/types";
 import { MissionsPanel } from "./MissionsPanel";
@@ -9,12 +9,14 @@ export function MissionPageClient() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    campaignsApi
-      .list()
-      .then(setCampaigns)
-      .finally(() => setLoading(false));
+  const fetchCampaigns = useCallback(async () => {
+    const data = await campaignsApi.list();
+    setCampaigns(data);
   }, []);
+
+  useEffect(() => {
+    fetchCampaigns().finally(() => setLoading(false));
+  }, [fetchCampaigns]);
 
   if (loading) {
     return (
@@ -25,5 +27,5 @@ export function MissionPageClient() {
     );
   }
 
-  return <MissionsPanel campaigns={campaigns} />;
+  return <MissionsPanel campaigns={campaigns} onRefresh={fetchCampaigns} />;
 }

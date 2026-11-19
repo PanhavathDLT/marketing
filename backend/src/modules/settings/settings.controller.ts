@@ -13,8 +13,20 @@ export class SettingsController {
 
   updateReferralConfig = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { refereeBonus } = req.body as { refereeBonus: number };
-      success(res, await this.service.updateReferralConfig(Number(refereeBonus)));
+      const { refereeBonus, referrerBonus } = req.body as { refereeBonus: number; referrerBonus: number };
+      success(res, await this.service.updateReferralConfig(Number(refereeBonus), Number(referrerBonus)));
+    } catch (err) { next(err); }
+  };
+
+  getCheckInConfig = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.service.getCheckInConfig());
+    } catch (err) { next(err); }
+  };
+
+  updateCheckInConfig = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      success(res, await this.service.updateCheckInConfig(req.body.points));
     } catch (err) { next(err); }
   };
 }

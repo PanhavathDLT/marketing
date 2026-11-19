@@ -15,9 +15,9 @@ const tierRepo = new TierRepository(prisma);
 const settingsRepo = new SettingsRepository(prisma);
 
 const rewardRepo = new RewardRepository(prisma);
-const rewardService = new RewardService(rewardRepo, tierRepo, settingsRepo);
-
 const missionRepo = new MissionRepository(prisma);
+const rewardService = new RewardService(rewardRepo, tierRepo, settingsRepo, missionRepo);
+
 const missionService = new MissionService(missionRepo);
 
 export const rewardController = new RewardController(rewardService, missionService);

@@ -21,12 +21,14 @@ import {
 import { ImageUpload } from "@/components/ui/image-upload";
 import { missionsApi } from "../api/missionsApi";
 import type { Mission, MissionPayload, MissionTypeOption } from "../types";
+import type { Campaign } from "@/features/campaigns/types";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initial?: Mission | null;
-  onSubmit: (payload: MissionPayload) => Promise<void>;
+  campaigns: Campaign[];
+  onSubmit: (campaignId: number, payload: MissionPayload) => Promise<void>;
 }
 
 function toDateInput(iso?: string): string {
@@ -42,10 +44,11 @@ function endOfDay(date: string): string {
   return new Date(date + "T23:59:59").toISOString();
 }
 
-export function MissionFormDialog({ open, onOpenChange, initial, onSubmit }: Props) {
+export function MissionFormDialog({ open, onOpenChange, initial, campaigns, onSubmit }: Props) {
   const [missionTypes, setMissionTypes] = useState<MissionTypeOption[]>([]);
   const [typesLoading, setTypesLoading] = useState(false);
 
+  const [campaignId, setCampaignId] = useState("");
   const [title, setTitle] = useState("");
   const [type, setType] = useState("");
   const [points, setPoints] = useState("100");
@@ -63,13 +66,11 @@ export function MissionFormDialog({ open, onOpenChange, initial, onSubmit }: Pro
     missionsApi.listTypes()
       .then((types) => {
         setMissionTypes(types);
-        // Set default type to first option or keep existing
         if (!initial?.type && types.length > 0) {
           setType(types[0].value);
         }
       })
       .catch(() => {
-        // Fall back to common types if endpoint fails
         const fallback: MissionTypeOption[] = [
           { value: "REFERRAL",         label: "Referral" },
           { value: "LOAN_APPLICATION", label: "Loan Application" },
@@ -84,6 +85,7 @@ export function MissionFormDialog({ open, onOpenChange, initial, onSubmit }: Pro
 
   useEffect(() => {
     if (open) {
+      setCampaignId(initial?.campaignId ? String(initial.campaignId) : "");
       setTitle(initial?.title ?? "");
       setType(initial?.type ?? "");
       setPoints(String(initial?.points ?? 100));
@@ -97,6 +99,10 @@ export function MissionFormDialog({ open, onOpenChange, initial, onSubmit }: Pro
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!campaignId) {
+      setError("Please select a campaign.");
+      return;
+    }
     if (!startDate || !endDate) {
       setError("Start date and end date are required.");
       return;
@@ -108,7 +114,7 @@ export function MissionFormDialog({ open, onOpenChange, initial, onSubmit }: Pro
     setSaving(true);
     setError(null);
     try {
-      await onSubmit({
+      await onSubmit(Number(campaignId), {
         title,
         type,
         points: Number(points),
@@ -125,14 +131,40 @@ export function MissionFormDialog({ open, onOpenChange, initial, onSubmit }: Pro
     }
   }
 
+  const isEditing = !!initial;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md flex flex-col max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>{initial ? "Edit Mission" : "Create Mission"}</DialogTitle>
+          <DialogTitle>{isEditing ? "Edit Mission" : "Create Mission"}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 overflow-y-auto py-2 pr-1">
+          {/* Campaign selector */}
+          <div className="space-y-1.5">
+            <Label>Campaign</Label>
+            <Select
+              value={campaignId}
+              onValueChange={setCampaignId}
+              disabled={isEditing}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a campaign" />
+              </SelectTrigger>
+              <SelectContent>
+                {campaigns.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)}>
+                    {c.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {isEditing && (
+              <p className="text-xs text-muted-foreground">Campaign cannot be changed after creation.</p>
+            )}
+          </div>
+
           <div className="space-y-1.5">
             <Label htmlFor="mission-title">Title</Label>
             <Input
@@ -226,8 +258,8 @@ export function MissionFormDialog({ open, onOpenChange, initial, onSubmit }: Pro
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" variant="brand" disabled={saving || !type}>
-              {saving ? "Saving…" : initial ? "Update" : "Create"}
+            <Button type="submit" variant="brand" disabled={saving || !type || !campaignId}>
+              {saving ? "Saving…" : isEditing ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </form>

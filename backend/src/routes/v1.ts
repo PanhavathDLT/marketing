@@ -2,7 +2,7 @@ import { Router, IRouter } from 'express';
 import { authenticate, requireRole } from '@shared/middleware/auth.middleware.js';
 import { authRouter } from '@modules/auth/index.js';
 import { adminCampaignRouter, customerCampaignRouter } from '@modules/campaign/index.js';
-import { adminMissionRouter, adminMissionStandaloneRouter, missionLosRouter } from '@modules/mission/index.js';
+import { adminMissionRouter, adminMissionStandaloneRouter, customerMissionRouter } from '@modules/mission/index.js';
 import { analyticsRouter } from '@modules/analytics/index.js';
 import { rewardRouter, referralRouter, adminRewardStoreRouter } from '@modules/reward/index.js';
 import { userManagementRouter } from '@modules/user-management/index.js';
@@ -23,6 +23,7 @@ customer.use('/campaigns', customerCampaignRouter);
 customer.use('/reward', rewardRouter);           // /reward/points, /reward/missions, /reward/store, etc.
 customer.use('/referral', referralRouter);       // /referral/my-code, /referral/apply
 customer.use('/tiers', customerTierRouter);
+customer.use('/missions', customerMissionRouter); // /missions/complete
 
 router.use('/customer', customer);
 
@@ -41,9 +42,5 @@ admin.use('/tiers', adminTierRouter);
 admin.use('/settings', settingsRouter);
 
 router.use('/admin', admin);
-
-// ─── LOS (LOS backend → marketing backend) ────────────────────────────────────
-// Protected by X-Internal-Key header — not for browsers or mobile clients
-router.use('/los', missionLosRouter);
 
 export default router;
