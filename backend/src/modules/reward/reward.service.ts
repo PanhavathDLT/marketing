@@ -194,6 +194,11 @@ export class RewardService {
       await this.missionRepo.recordProgress(referrer.userId, mission);
     }
 
-    return { referrerName: referrer.name ?? 'Unknown', refereeBonus, referrerBonus };
+    return {
+      referrerName:  referrer.name ?? null,
+      referrerPhone: referrer.phone ?? null,
+      refereeBonus,
+      referrerBonus,
+    };
   }
 }
