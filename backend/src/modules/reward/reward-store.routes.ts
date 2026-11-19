@@ -1,11 +1,11 @@
 import { Router, IRouter } from 'express';
-import { validate } from '@shared/middleware/validate.middleware.js';
-import { requirePermission } from '@shared/middleware/permission.middleware.js';
+import { validate } from '../../shared/middleware/validate.middleware.js';
+import { requirePermission } from '../../shared/middleware/permission.middleware.js';
 import { createRewardItemSchema, updateRewardItemSchema, updateRedemptionStatusSchema } from './reward-store.schema.js';
 import { RewardRepository } from './reward.repository.js';
 import { RewardStoreService } from './reward-store.service.js';
 import { RewardStoreController } from './reward-store.controller.js';
-import prisma from '@lib/prisma.js';
+import prisma from '../../lib/prisma.js';
 
 // ─── Composition root ─────────────────────────────────────────────────────────
 const repo = new RewardRepository(prisma);

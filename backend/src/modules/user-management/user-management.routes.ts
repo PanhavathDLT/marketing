@@ -1,6 +1,6 @@
 import { Router, IRouter } from 'express';
-import { validate } from '@shared/middleware/validate.middleware.js';
-import { requirePermission, requireSuperAdmin } from '@shared/middleware/permission.middleware.js';
+import { validate } from '../../shared/middleware/validate.middleware.js';
+import { requirePermission, requireSuperAdmin } from '../../shared/middleware/permission.middleware.js';
 import {
   createAdminUserSchema, updateAdminUserSchema,
   createRoleSchema, updateRoleSchema, setRolePermissionsSchema,
@@ -8,7 +8,7 @@ import {
 import { UserManagementRepository } from './user-management.repository.js';
 import { UserManagementService } from './user-management.service.js';
 import { UserManagementController } from './user-management.controller.js';
-import prisma from '@lib/prisma.js';
+import prisma from '../../lib/prisma.js';
 
 // ─── Composition root ─────────────────────────────────────────────────────────
 const repo       = new UserManagementRepository(prisma);

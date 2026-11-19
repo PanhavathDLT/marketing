@@ -1,5 +1,5 @@
 import { RedemptionStatus } from '@prisma/client';
-import { AppError } from '@shared/errors/AppError.js';
+import { AppError } from '../../shared/errors/AppError.js';
 import { RewardRepository } from './reward.repository.js';
 import {
   toAdminStoreItemDTO, AdminStoreItemDTO,

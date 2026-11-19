@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { randomUUID } from 'crypto';
-import { env } from '@config/env.js';
+import { env } from '../../config/env.js';
 import type { IStorageService } from './storage.interface.js';
 
 // Files land in <project-root>/public/uploads/ and are served by express.static('public')

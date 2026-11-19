@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
-import prisma from '@lib/prisma.js';
+import prisma from '../../lib/prisma.js';
 
 /**
  * Protects endpoints that are called by trusted external server clients

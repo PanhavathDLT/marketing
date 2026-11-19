@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { success } from '@shared/utils/response.js';
+import { success } from '../../shared/utils/response.js';
 import { User } from '@prisma/client';
 import { RewardService } from './reward.service.js';
-import { MissionService } from '@modules/mission/mission.service.js';
+import { MissionService } from '../mission/mission.service.js';
 
 export class RewardController {
   constructor(

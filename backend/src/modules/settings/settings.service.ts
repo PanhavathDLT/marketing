@@ -1,4 +1,4 @@
-import { AppError } from '@shared/errors/AppError.js';
+import { AppError } from '../../shared/errors/AppError.js';
 import { SettingsRepository, CheckInPoints } from './settings.repository.js';
 
 function configToArray(c: { day1: number; day2: number; day3: number; day4: number; day5: number; day6: number; day7: number }) {

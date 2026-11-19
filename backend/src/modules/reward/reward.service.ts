@@ -1,10 +1,10 @@
-import { AppError } from '@shared/errors/AppError.js';
+import { AppError } from '../../shared/errors/AppError.js';
 import { RewardRepository } from './reward.repository.js';
 import { toPointsDTO, toStoreItemDTO, toRedemptionDTO, PointsDTO, StoreItemDTO, RedemptionDTO } from './reward.mapper.js';
 import { TIMEZONE } from './reward.config.js';
-import { TierRepository, resolveTierByLoanCount } from '@modules/tier/index.js';
-import { SettingsRepository } from '@modules/settings/settings.repository.js';
-import { MissionRepository } from '@modules/mission/mission.repository.js';
+import { TierRepository, resolveTierByLoanCount } from '../tier/index.js';
+import { SettingsRepository } from '../settings/settings.repository.js';
+import { MissionRepository } from '../mission/mission.repository.js';
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 

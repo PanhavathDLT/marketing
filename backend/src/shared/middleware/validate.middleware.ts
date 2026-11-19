@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodSchema } from 'zod';
-import { error } from '@shared/utils/response.js';
+import { error } from '../utils/response.js';
 
 type Target = 'body' | 'query' | 'params';
 

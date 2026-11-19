@@ -1,5 +1,5 @@
-import { env } from '@config/env.js';
-import prisma from '@lib/prisma.js';
+import { env } from '../../config/env.js';
+import prisma from '../../lib/prisma.js';
 import type { IStorageService } from './storage.interface.js';
 
 function idFromUrl(url: string): string {

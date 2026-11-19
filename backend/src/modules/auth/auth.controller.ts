@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { success } from '@shared/utils/response.js';
+import { success } from '../../shared/utils/response.js';
 import { AuthService } from './auth.service.js';
 import { LoginInput, SessionInput, RefreshTokenInput } from './auth.schema.js';
 

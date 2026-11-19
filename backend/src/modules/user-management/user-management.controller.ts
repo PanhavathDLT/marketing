@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { success } from '@shared/utils/response.js';
+import { success } from '../../shared/utils/response.js';
 import { User } from '@prisma/client';
 import { UserManagementService } from './user-management.service.js';
 

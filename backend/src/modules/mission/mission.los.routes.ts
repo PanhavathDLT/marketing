@@ -1,10 +1,10 @@
 import { Router, IRouter, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { validate } from '@shared/middleware/validate.middleware.js';
-import { success } from '@shared/utils/response.js';
+import { validate } from '../../shared/middleware/validate.middleware.js';
+import { success } from '../../shared/utils/response.js';
 import { MissionRepository } from './mission.repository.js';
 import type { AuthenticatedUser } from '../../types/express.js';
-import prisma from '@lib/prisma.js';
+import prisma from '../../lib/prisma.js';
 
 const missionRepo = new MissionRepository(prisma);
 

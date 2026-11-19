@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { success } from '@shared/utils/response.js';
+import { success } from '../../shared/utils/response.js';
 import { TierService } from './tier.service.js';
 import { CreateTierInput, UpdateTierInput } from './tier.schema.js';
 

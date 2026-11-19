@@ -1,9 +1,9 @@
 import { Router, IRouter } from 'express';
-import { requirePermission } from '@shared/middleware/permission.middleware.js';
+import { requirePermission } from '../../shared/middleware/permission.middleware.js';
 import { SettingsRepository } from './settings.repository.js';
 import { SettingsService } from './settings.service.js';
 import { SettingsController } from './settings.controller.js';
-import prisma from '@lib/prisma.js';
+import prisma from '../../lib/prisma.js';
 
 // ─── Composition root ─────────────────────────────────────────────────────────
 const repo = new SettingsRepository(prisma);

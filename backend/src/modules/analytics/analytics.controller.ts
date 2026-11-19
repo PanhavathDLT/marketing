@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { success } from '@shared/utils/response.js';
+import { success } from '../../shared/utils/response.js';
 import { AnalyticsService } from './analytics.service.js';
 
 export class AnalyticsController {

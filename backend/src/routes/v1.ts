@@ -1,14 +1,14 @@
 import { Router, IRouter } from 'express';
-import { authenticate, requireRole } from '@shared/middleware/auth.middleware.js';
-import { authRouter } from '@modules/auth/index.js';
-import { adminCampaignRouter, customerCampaignRouter } from '@modules/campaign/index.js';
-import { adminMissionRouter, adminMissionStandaloneRouter, customerMissionRouter } from '@modules/mission/index.js';
-import { analyticsRouter } from '@modules/analytics/index.js';
-import { rewardRouter, referralRouter, adminRewardStoreRouter } from '@modules/reward/index.js';
-import { userManagementRouter } from '@modules/user-management/index.js';
-import { uploadRouter } from '@modules/upload/upload.routes.js';
-import { adminTierRouter, customerTierRouter } from '@modules/tier/index.js';
-import { settingsRouter } from '@modules/settings/index.js';
+import { authenticate, requireRole } from '../shared/middleware/auth.middleware.js';
+import { authRouter } from '../modules/auth/index.js';
+import { adminCampaignRouter, customerCampaignRouter } from '../modules/campaign/index.js';
+import { adminMissionRouter, adminMissionStandaloneRouter, customerMissionRouter } from '../modules/mission/index.js';
+import { analyticsRouter } from '../modules/analytics/index.js';
+import { rewardRouter, referralRouter, adminRewardStoreRouter } from '../modules/reward/index.js';
+import { userManagementRouter } from '../modules/user-management/index.js';
+import { uploadRouter } from '../modules/upload/upload.routes.js';
+import { adminTierRouter, customerTierRouter } from '../modules/tier/index.js';
+import { settingsRouter } from '../modules/settings/index.js';
 
 const router: IRouter = Router();
 

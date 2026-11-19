@@ -1,11 +1,11 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import path from 'path';
-import { env } from '@config/env.js';
-import '@config/passport.js'; // register passport strategy
+import { env } from './config/env.js';
+import './config/passport.js'; // register passport strategy
 import v1Router from './routes/v1.js';
-import { errorHandler } from '@shared/middleware/error.middleware.js';
-import prisma from '@lib/prisma.js';
+import { errorHandler } from './shared/middleware/error.middleware.js';
+import prisma from './lib/prisma.js';
 
 const app: Application = express();
 

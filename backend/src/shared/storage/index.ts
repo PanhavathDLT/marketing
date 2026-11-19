@@ -1,4 +1,4 @@
-import { env } from '@config/env.js';
+import { env } from '../../config/env.js';
 import { LocalStorageService } from './local.storage.js';
 import { CloudinaryStorageService } from './cloudinary.storage.js';
 import { DbStorageService } from './db.storage.js';

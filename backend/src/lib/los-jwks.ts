@@ -1,6 +1,6 @@
 import { createRemoteJWKSet, jwtVerify } from 'jose';
-import { env } from '@config/env.js';
-import { AppError } from '@shared/errors/AppError.js';
+import { env } from '../config/env.js';
+import { AppError } from '../shared/errors/AppError.js';
 
 const getJWKS = (() => {
   let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;

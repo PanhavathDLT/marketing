@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { nanoid } from 'nanoid';
-import { env } from '@config/env.js';
-import { AppError } from '@shared/errors/AppError.js';
-import { verifyLosCustomerToken } from '@lib/los-jwks.js';
+import { env } from '../../config/env.js';
+import { AppError } from '../../shared/errors/AppError.js';
+import { verifyLosCustomerToken } from '../../lib/los-jwks.js';
 import { LoginInput } from './auth.schema.js';
 import { AuthRepository } from './auth.repository.js';
 import { toUserDTO } from './auth.mapper.js';

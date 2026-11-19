@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
-import { env } from '@config/env.js';
+import { env } from '../../config/env.js';
 import type { IStorageService } from './storage.interface.js';
 
 function getClient() {

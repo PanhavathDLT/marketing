@@ -1,4 +1,4 @@
-import { AppError } from '@shared/errors/AppError.js';
+import { AppError } from '../../shared/errors/AppError.js';
 import { TierRepository } from './tier.repository.js';
 import { toTierDTO, TierDTO } from './tier.mapper.js';
 import { CreateTierInput, UpdateTierInput } from './tier.schema.js';

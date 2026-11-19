@@ -1,11 +1,11 @@
 import { Router, IRouter } from 'express';
-import { validate } from '@shared/middleware/validate.middleware.js';
-import { requirePermission } from '@shared/middleware/permission.middleware.js';
+import { validate } from '../../shared/middleware/validate.middleware.js';
+import { requirePermission } from '../../shared/middleware/permission.middleware.js';
 import { createTierSchema, updateTierSchema } from './tier.schema.js';
 import { TierRepository } from './tier.repository.js';
 import { TierService } from './tier.service.js';
 import { TierController } from './tier.controller.js';
-import prisma from '@lib/prisma.js';
+import prisma from '../../lib/prisma.js';
 
 const repo = new TierRepository(prisma);
 const service = new TierService(repo);

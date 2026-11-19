@@ -1,7 +1,7 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
 import path from 'path';
-import { env } from '@config/env.js';
+import { env } from '../../config/env.js';
 import type { IStorageService } from './storage.interface.js';
 
 function buildClient() {

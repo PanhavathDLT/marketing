@@ -1,4 +1,4 @@
-import { AppError } from '@shared/errors/AppError.js';
+import { AppError } from '../../shared/errors/AppError.js';
 import { CreateCampaignInput, UpdateCampaignInput } from './campaign.schema.js';
 import { CampaignRepository } from './campaign.repository.js';
 import { toCampaignDTO, CampaignDTO } from './campaign.mapper.js';

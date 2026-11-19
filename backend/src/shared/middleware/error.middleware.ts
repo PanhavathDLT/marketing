@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Prisma } from '@prisma/client';
-import { AppError } from '@shared/errors/AppError.js';
+import { AppError } from '../errors/AppError.js';
 
 const isDev = process.env.NODE_ENV !== 'production';
 

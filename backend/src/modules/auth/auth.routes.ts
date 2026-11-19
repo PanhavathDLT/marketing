@@ -1,10 +1,10 @@
 import { Router, IRouter } from 'express';
-import { validate } from '@shared/middleware/validate.middleware.js';
+import { validate } from '../../shared/middleware/validate.middleware.js';
 import { loginSchema, sessionSchema, refreshTokenSchema } from './auth.schema.js';
 import { AuthRepository } from './auth.repository.js';
 import { AuthService } from './auth.service.js';
 import { AuthController } from './auth.controller.js';
-import prisma from '@lib/prisma.js';
+import prisma from '../../lib/prisma.js';
 
 // ─── Composition root ─────────────────────────────────────────────────────────
 const repo       = new AuthRepository(prisma);

@@ -1,9 +1,9 @@
 import { Router, IRouter } from 'express';
-import { requirePermission } from '@shared/middleware/permission.middleware.js';
+import { requirePermission } from '../../shared/middleware/permission.middleware.js';
 import { AnalyticsRepository } from './analytics.repository.js';
 import { AnalyticsService } from './analytics.service.js';
 import { AnalyticsController } from './analytics.controller.js';
-import prisma from '@lib/prisma.js';
+import prisma from '../../lib/prisma.js';
 
 // ─── Composition root ─────────────────────────────────────────────────────────
 const repo = new AnalyticsRepository(prisma);

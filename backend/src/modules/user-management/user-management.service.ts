@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
-import { env } from '@config/env.js';
-import { AppError } from '@shared/errors/AppError.js';
-import { invalidatePermissionCache } from '@shared/middleware/permission.middleware.js';
+import { env } from '../../config/env.js';
+import { AppError } from '../../shared/errors/AppError.js';
+import { invalidatePermissionCache } from '../../shared/middleware/permission.middleware.js';
 import { UserManagementRepository } from './user-management.repository.js';
 import {
   toAdminUserDTO, toRoleDTO, groupPermissions, toCustomerDTO,

@@ -1,4 +1,4 @@
-import { AppError } from '@shared/errors/AppError.js';
+import { AppError } from '../../shared/errors/AppError.js';
 import { CreateMissionInput, UpdateMissionInput } from './mission.schema.js';
 import { MissionRepository } from './mission.repository.js';
 import { toMissionDTO, toCustomerMissionDTO, MissionDTO, CustomerMissionDTO } from './mission.mapper.js';

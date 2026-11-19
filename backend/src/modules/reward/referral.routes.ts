@@ -1,5 +1,5 @@
 import { Router, IRouter } from 'express';
-import { validate } from '@shared/middleware/validate.middleware.js';
+import { validate } from '../../shared/middleware/validate.middleware.js';
 import { z } from 'zod';
 import { rewardController } from './reward.routes.js';
 

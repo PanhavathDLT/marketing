@@ -1,11 +1,11 @@
 import { Router, IRouter } from 'express';
-import { validate } from '@shared/middleware/validate.middleware.js';
-import { requirePermission } from '@shared/middleware/permission.middleware.js';
+import { validate } from '../../shared/middleware/validate.middleware.js';
+import { requirePermission } from '../../shared/middleware/permission.middleware.js';
 import { createMissionSchema, updateMissionSchema } from './mission.schema.js';
 import { MissionRepository } from './mission.repository.js';
 import { MissionService } from './mission.service.js';
 import { MissionController } from './mission.controller.js';
-import prisma from '@lib/prisma.js';
+import prisma from '../../lib/prisma.js';
 
 // ─── Composition root ─────────────────────────────────────────────────────────
 const repo = new MissionRepository(prisma);

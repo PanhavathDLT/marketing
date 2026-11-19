@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import passport from '@config/passport.js';
+import passport from '../../config/passport.js';
 import { Role } from '@prisma/client';
-import { error } from '@shared/utils/response.js';
+import { error } from '../utils/response.js';
 
 export const authenticate = passport.authenticate('jwt', { session: false });
 

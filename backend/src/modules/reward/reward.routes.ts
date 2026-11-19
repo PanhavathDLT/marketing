@@ -1,14 +1,14 @@
 import { Router, IRouter } from 'express';
-import { validate } from '@shared/middleware/validate.middleware.js';
+import { validate } from '../../shared/middleware/validate.middleware.js';
 import { z } from 'zod';
 import { RewardRepository } from './reward.repository.js';
 import { RewardService } from './reward.service.js';
 import { RewardController } from './reward.controller.js';
-import { MissionRepository } from '@modules/mission/mission.repository.js';
-import { MissionService } from '@modules/mission/mission.service.js';
-import { TierRepository } from '@modules/tier/index.js';
-import { SettingsRepository } from '@modules/settings/settings.repository.js';
-import prisma from '@lib/prisma.js';
+import { MissionRepository } from '../mission/mission.repository.js';
+import { MissionService } from '../mission/mission.service.js';
+import { TierRepository } from '../tier/index.js';
+import { SettingsRepository } from '../settings/settings.repository.js';
+import prisma from '../../lib/prisma.js';
 
 // ─── Composition root ─────────────────────────────────────────────────────────
 const tierRepo = new TierRepository(prisma);

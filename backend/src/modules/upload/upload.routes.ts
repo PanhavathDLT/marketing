@@ -1,8 +1,8 @@
 import { Router, IRouter, Request, Response, NextFunction } from 'express';
 import multer, { MulterError } from 'multer';
-import { getStorageService } from '@shared/storage/index.js';
-import { success } from '@shared/utils/response.js';
-import { AppError } from '@shared/errors/AppError.js';
+import { getStorageService } from '../../shared/storage/index.js';
+import { success } from '../../shared/utils/response.js';
+import { AppError } from '../../shared/errors/AppError.js';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB

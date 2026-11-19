@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { error } from '@shared/utils/response.js';
+import { error } from '../utils/response.js';
 import { AuthenticatedUser } from '../../types/express.js';
 
 // ─── In-memory permission cache (5-min TTL, no Redis needed) ─────────────────
@@ -15,7 +15,7 @@ async function resolvePermissions(staffRoleId: number): Promise<Set<string>> {
   // The staffProfile already has the role + permissions loaded via passport
   // but we keep a cache here for direct calls that may not have the full object.
   // Import prisma lazily to avoid circular deps.
-  const { default: prisma } = await import('@lib/prisma.js');
+  const { default: prisma } = await import('../../lib/prisma.js');
   const rows = await prisma.staffRolePermission.findMany({
     where: { staffRoleId },
     include: { permission: true },

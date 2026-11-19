@@ -1,11 +1,11 @@
 import { Router, IRouter } from 'express';
-import { validate } from '@shared/middleware/validate.middleware.js';
-import { requirePermission } from '@shared/middleware/permission.middleware.js';
+import { validate } from '../../shared/middleware/validate.middleware.js';
+import { requirePermission } from '../../shared/middleware/permission.middleware.js';
 import { createCampaignSchema, updateCampaignSchema } from './campaign.schema.js';
 import { CampaignRepository } from './campaign.repository.js';
 import { CampaignService } from './campaign.service.js';
 import { CampaignController } from './campaign.controller.js';
-import prisma from '@lib/prisma.js';
+import prisma from '../../lib/prisma.js';
 
 // ─── Composition root ─────────────────────────────────────────────────────────
 const repo = new CampaignRepository(prisma);
