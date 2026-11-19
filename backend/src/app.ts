@@ -1,4 +1,3 @@
-import 'tsconfig-paths/register';
 import express, { Application } from 'express';
 import cors from 'cors';
 import path from 'path';
