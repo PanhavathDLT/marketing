@@ -1,7 +1,8 @@
 node_modules/
 dist/
 .env
-.env.dev
+.env.*
+!.env.example
 *.log
 public/uploads/
 .neon

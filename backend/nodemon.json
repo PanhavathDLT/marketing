@@ -1,8 +1,8 @@
 {
-  "watch": ["src/", ".env.dev"],
+  "watch": ["src/", ".env.local"],
   "ext": "ts,js,json",
   "ignore": ["dist/", "**/*.test.ts"],
-  "exec": "tsx --env-file=.env.dev src/index.ts",
+  "exec": "tsx --env-file=.env.local src/index.ts",
   "env": {
     "NODE_ENV": "development"
   }
