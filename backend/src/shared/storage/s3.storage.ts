@@ -4,48 +4,48 @@ import path from 'path';
 import { env } from '../../config/env.js';
 import type { IStorageService } from './storage.interface.js';
 
-function buildClient() {
-  // AWS_ENDPOINT_URL_S3 from Neon is virtual-hosted style: https://{bucket}.storage.{region}.aws.neon.tech
-  // Strip the bucket subdomain to get the base endpoint the SDK uses.
-  const endpointUrl = new URL(env.AWS_ENDPOINT_URL_S3!);
-  const baseEndpoint = `${endpointUrl.protocol}//${endpointUrl.hostname.replace(`${env.AWS_S3_BUCKET}.`, '')}`;
+// Must exist with Public visibility on every Neon branch that uses STORAGE_DRIVER=s3.
+const BUCKET = 'uploads';
 
+function buildClient() {
   return new S3Client({
     region: env.AWS_REGION,
-    endpoint: baseEndpoint,
+    endpoint: env.AWS_ENDPOINT_URL_S3,
     credentials: {
       accessKeyId: env.AWS_ACCESS_KEY_ID!,
       secretAccessKey: env.AWS_SECRET_ACCESS_KEY!,
     },
-    forcePathStyle: false,
+    forcePathStyle: true, // Neon only supports path-style: https://<endpoint>/<bucket>/<key>
   });
 }
 
 export class S3StorageService implements IStorageService {
   private client = buildClient();
+  private publicBaseUrl = `${env.AWS_ENDPOINT_URL_S3}/${BUCKET}/`;
 
   async upload(file: Express.Multer.File): Promise<string> {
     const ext = path.extname(file.originalname).toLowerCase();
-    const key = `uploads/${randomUUID()}${ext}`;
+    const key = `${randomUUID()}${ext}`;
 
     await this.client.send(new PutObjectCommand({
-      Bucket: env.AWS_S3_BUCKET!,
+      Bucket: BUCKET,
       Key: key,
       Body: file.buffer,
       ContentType: file.mimetype,
     }));
 
-    // Return the public virtual-hosted URL
-    return `${env.AWS_ENDPOINT_URL_S3}/${key}`;
+    return `${this.publicBaseUrl}${key}`;
   }
 
   async delete(publicUrl: string): Promise<void> {
-    // Extract key from URL: everything after the endpoint
-    const key = publicUrl.replace(`${env.AWS_ENDPOINT_URL_S3}/`, '');
+    // Ignore URLs from another environment or storage driver
+    if (!publicUrl.startsWith(this.publicBaseUrl)) return;
+
+    const key = publicUrl.slice(this.publicBaseUrl.length);
     if (!key) return;
 
     await this.client.send(new DeleteObjectCommand({
-      Bucket: env.AWS_S3_BUCKET!,
+      Bucket: BUCKET,
       Key: key,
     })).catch(() => {
       // ignore not-found
