@@ -86,6 +86,36 @@ export class RewardRepository {
     });
   }
 
+  async applyPartnerCodeWithBonus(
+    customerId: number,         // referee's User.id
+    partnerCodeId: number,
+    customerProfileId: number,  // referee's CustomerProfile.id
+    refereeBonus: number,
+  ): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      // Record the partner code usage (1:1 unique per customer)
+      await tx.partnerCodeUsage.create({
+        data: { partnerCodeId, customerId: customerProfileId },
+      });
+
+      // Award joining bonus to the referee
+      if (refereeBonus > 0) {
+        await tx.customerProfile.update({
+          where: { userId: customerId },
+          data: { points: { increment: refereeBonus } },
+        });
+        await tx.pointsHistory.create({
+          data: {
+            customerId,
+            source: 'REFERRAL',
+            title: 'Partner code joining bonus',
+            points: refereeBonus,
+          },
+        });
+      }
+    });
+  }
+
   getPointsHistory(customerId: number): Promise<PointsHistory[]> {
     return this.prisma.pointsHistory.findMany({
       where: { customerId },

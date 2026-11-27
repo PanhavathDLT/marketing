@@ -13,6 +13,17 @@ enum Role {
   ADMIN
 }
 
+enum PartnerChannel {
+  TIKTOK
+  YOUTUBE
+  FACEBOOK
+  INSTAGRAM
+  TELEGRAM
+  TWITTER
+  LINKEDIN
+  OTHER
+}
+
 
 enum MissionType {
   REFERRAL
@@ -77,6 +88,7 @@ model CustomerProfile {
   referredById     Int?              // CustomerProfile.id of the referrer
   referredBy       CustomerProfile?  @relation("Referrals", fields: [referredById], references: [id])
   referrals        CustomerProfile[] @relation("Referrals")
+  partnerCodeUsage PartnerCodeUsage?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -269,4 +281,41 @@ model CheckInConfig {
   day6      Int      @default(20)
   day7      Int      @default(60)
   updatedAt DateTime @updatedAt
+}
+
+// ─── Partner / Creator Code ───────────────────────────────────────────────────
+
+model PartnerCode {
+  id          Int                 @id @default(autoincrement())
+  name        String
+  phone       String?
+  channel     PartnerChannel?
+  note        String?
+  code        String              @unique
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  usages      PartnerCodeUsage[]
+  conversions PartnerConversion[]
+}
+
+model PartnerCodeUsage {
+  id            Int             @id @default(autoincrement())
+  partnerCodeId Int
+  customerId    Int             @unique        // one code per customer
+  appliedAt     DateTime        @default(now())
+
+  partnerCode   PartnerCode     @relation(fields: [partnerCodeId], references: [id])
+  customer      CustomerProfile @relation(fields: [customerId], references: [id])
+}
+
+model PartnerConversion {
+  id            Int         @id @default(autoincrement())
+  partnerCodeId Int
+  customerId    Int
+  eventType     String      // "APPLICATION_SUBMISSION" | "LOAN_APPROVAL"
+  occurredAt    DateTime    @default(now())
+
+  partnerCode   PartnerCode @relation(fields: [partnerCodeId], references: [id])
 }

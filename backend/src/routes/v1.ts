@@ -9,6 +9,8 @@ import { userManagementRouter } from '../modules/user-management/index.js';
 import { uploadRouter } from '../modules/upload/upload.routes.js';
 import { adminTierRouter, customerTierRouter } from '../modules/tier/index.js';
 import { settingsRouter } from '../modules/settings/index.js';
+import { partnerRouter } from '../modules/partner/index.js';
+import { losRouter } from '../modules/los/los.routes.js';
 
 const router: IRouter = Router();
 
@@ -40,7 +42,11 @@ admin.use('/user-management', userManagementRouter);
 admin.use('/upload', uploadRouter);
 admin.use('/tiers', adminTierRouter);
 admin.use('/settings', settingsRouter);
+admin.use('/partners', partnerRouter);
 
 router.use('/admin', admin);
+
+// ─── LOS (server-to-server) ────────────────────────────────────────────────────
+router.use('/los', losRouter);
 
 export default router;

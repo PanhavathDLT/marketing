@@ -5,6 +5,7 @@ import { TIMEZONE } from './reward.config.js';
 import { TierRepository, resolveTierByLoanCount } from '../tier/index.js';
 import { SettingsRepository } from '../settings/settings.repository.js';
 import { MissionRepository } from '../mission/mission.repository.js';
+import { PartnerRepository } from '../partner/partner.repository.js';
 
 // ─── Date helpers ─────────────────────────────────────────────────────────────
 
@@ -41,6 +42,7 @@ export class RewardService {
     private readonly tierRepo: TierRepository,
     private readonly settingsRepo: SettingsRepository,
     private readonly missionRepo: MissionRepository,
+    private readonly partnerRepo: PartnerRepository,
   ) {}
 
   async getPoints(customerId: number): Promise<PointsDTO> {
@@ -161,44 +163,72 @@ export class RewardService {
     const customer = await this.repo.findUser(customerId);
     if (!customer) throw new AppError('User not found', 404);
     if (!customer.customerProfile) throw new AppError('Customer profile not found', 404);
+
     if (customer.customerProfile.referralCode === code) {
       throw new AppError('You cannot use your own referral code.', 422);
     }
+
+    // A customer can only apply one code total (peer referral or partner code)
     if (customer.customerProfile.referredById) {
-      throw new AppError('You are already linked to a referrer.', 409);
+      throw new AppError('You have already applied a referral or partner code.', 409);
     }
-
-    const referrer = await this.repo.findUserByReferralCode(code);
-    if (!referrer) throw new AppError('Referral code not found.', 404);
-
-    const [config, activeMissions] = await Promise.all([
-      this.settingsRepo.getReferralConfig(),
-      this.missionRepo.findActiveMissionsByType('REFERRAL'),
-    ]);
-
-    const refereeBonus = config?.refereeBonus ?? 0;
-    // Referrer gets auto bonus from config only when no active REFERRAL mission exists.
-    // When a mission is active, the referrer earns points by completing and claiming it.
-    const referrerBonus = activeMissions.length === 0 ? (config?.referrerBonus ?? 0) : 0;
-
-    await this.repo.applyReferralCodeWithBonus(
-      customerId,
-      referrer.id,
-      referrer.userId,
-      refereeBonus,
-      referrerBonus,
+    const existingPartnerUsage = await this.partnerRepo.findUsageByCustomerId(
+      customer.customerProfile.id,
     );
-
-    // Record mission progress for the referrer against every active REFERRAL mission
-    for (const mission of activeMissions) {
-      await this.missionRepo.recordProgress(referrer.userId, mission);
+    if (existingPartnerUsage) {
+      throw new AppError('You have already applied a referral or partner code.', 409);
     }
 
-    return {
-      referrerName:  referrer.name ?? null,
-      referrerPhone: referrer.phone ?? null,
-      refereeBonus,
-      referrerBonus,
-    };
+    // ── 1. Try peer referral first ──────────────────────────────────────────
+    const referrer = await this.repo.findUserByReferralCode(code);
+    if (referrer) {
+      const [config, activeMissions] = await Promise.all([
+        this.settingsRepo.getReferralConfig(),
+        this.missionRepo.findActiveMissionsByType('REFERRAL'),
+      ]);
+
+      const refereeBonus = config?.refereeBonus ?? 0;
+      // Referrer gets auto bonus only when no active REFERRAL mission exists.
+      const referrerBonus = activeMissions.length === 0 ? (config?.referrerBonus ?? 0) : 0;
+
+      await this.repo.applyReferralCodeWithBonus(
+        customerId,
+        referrer.id,
+        referrer.userId,
+        refereeBonus,
+        referrerBonus,
+      );
+
+      for (const mission of activeMissions) {
+        await this.missionRepo.recordProgress(referrer.userId, mission);
+      }
+
+      // Same response shape as partner code path so mobile needs no code change
+      return {
+        referrerName: referrer.name ?? null,
+        refereeBonus,
+      };
+    }
+
+    // ── 2. Try partner code ─────────────────────────────────────────────────
+    const partnerCode = await this.partnerRepo.findByCode(code);
+    if (partnerCode) {
+      const config = await this.settingsRepo.getReferralConfig();
+      const refereeBonus = config?.refereeBonus ?? 0;
+
+      await this.repo.applyPartnerCodeWithBonus(
+        customerId,
+        partnerCode.id,
+        customer.customerProfile.id,
+        refereeBonus,
+      );
+
+      return {
+        referrerName: partnerCode.name,
+        refereeBonus,
+      };
+    }
+
+    throw new AppError('Code not found', 404);
   }
 }

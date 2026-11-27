@@ -8,6 +8,7 @@ import { MissionRepository } from '../mission/mission.repository.js';
 import { MissionService } from '../mission/mission.service.js';
 import { TierRepository } from '../tier/index.js';
 import { SettingsRepository } from '../settings/settings.repository.js';
+import { PartnerRepository } from '../partner/partner.repository.js';
 import prisma from '../../lib/prisma.js';
 
 // ─── Composition root ─────────────────────────────────────────────────────────
@@ -16,7 +17,8 @@ const settingsRepo = new SettingsRepository(prisma);
 
 const rewardRepo = new RewardRepository(prisma);
 const missionRepo = new MissionRepository(prisma);
-const rewardService = new RewardService(rewardRepo, tierRepo, settingsRepo, missionRepo);
+const partnerRepo = new PartnerRepository(prisma);
+const rewardService = new RewardService(rewardRepo, tierRepo, settingsRepo, missionRepo, partnerRepo);
 
 const missionService = new MissionService(missionRepo);
 

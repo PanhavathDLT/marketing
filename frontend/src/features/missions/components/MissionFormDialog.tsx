@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { missionsApi } from "../api/missionsApi";
+import { getMissionLabel } from "@/lib/mission";
 import type { Mission, MissionPayload, MissionTypeOption } from "../types";
 import type { Campaign } from "@/features/campaigns/types";
 
@@ -183,9 +184,9 @@ export function MissionFormDialog({ open, onOpenChange, initial, campaigns, onSu
                 <SelectValue placeholder={typesLoading ? "Loading…" : "Select type"} />
               </SelectTrigger>
               <SelectContent>
-                {missionTypes.map(({ value, label }) => (
+                {missionTypes.map(({ value }) => (
                   <SelectItem key={value} value={value}>
-                    {label}
+                    {getMissionLabel(value)}
                   </SelectItem>
                 ))}
               </SelectContent>
