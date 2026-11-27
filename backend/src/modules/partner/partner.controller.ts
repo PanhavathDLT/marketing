@@ -5,9 +5,13 @@ import { PartnerService } from './partner.service.js';
 export class PartnerController {
   constructor(private readonly service: PartnerService) {}
 
-  list = async (_req: Request, res: Response, next: NextFunction) => {
+  list = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      success(res, await this.service.list());
+      // ?isActive=true → active only | ?isActive=false → deactivated only | omit → all
+      let isActive: boolean | undefined;
+      if (req.query.isActive === 'true') isActive = true;
+      else if (req.query.isActive === 'false') isActive = false;
+      success(res, await this.service.list(isActive !== undefined ? { isActive } : undefined));
     } catch (err) { next(err); }
   };
 

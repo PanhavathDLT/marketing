@@ -2,19 +2,24 @@ import { useEffect, useState, useCallback } from "react";
 import { partnersApi } from "../api/partnersApi";
 import type { PartnerCode, PartnerCodePayload } from "../types";
 
-export function usePartners() {
+export type PartnerFilter = "active" | "inactive" | "all";
+
+export function usePartners(filter: PartnerFilter = "active") {
   const [partners, setPartners] = useState<PartnerCode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const isActiveParam =
+    filter === "active" ? true : filter === "inactive" ? false : undefined;
+
   const fetchPartners = useCallback(() => {
     setLoading(true);
     partnersApi
-      .list()
+      .list(isActiveParam)
       .then(setPartners)
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load partners"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [isActiveParam]);
 
   useEffect(() => {
     fetchPartners();

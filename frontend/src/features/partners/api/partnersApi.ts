@@ -2,7 +2,10 @@ import { api } from "@/lib/api";
 import type { PartnerCode, PartnerChannelOption, PartnerCodePayload, PartnerDetail } from "../types";
 
 export const partnersApi = {
-  list: () => api.get<PartnerCode[]>("/admin/partners"),
+  list: (isActive?: boolean) => {
+    const query = isActive !== undefined ? `?isActive=${isActive}` : "";
+    return api.get<PartnerCode[]>(`/admin/partners${query}`);
+  },
 
   listChannels: () => api.get<PartnerChannelOption[]>("/admin/partners/channels"),
 

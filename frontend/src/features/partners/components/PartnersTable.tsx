@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PartnerFormDialog } from "./PartnerFormDialog";
 import { PartnerUsagesDialog } from "./PartnerUsagesDialog";
-import { usePartners } from "../hooks/usePartners";
+import { usePartners, type PartnerFilter } from "../hooks/usePartners";
 import type { PartnerCode, PartnerCodePayload } from "../types";
 
 const CHANNEL_LABELS: Record<string, string> = {
@@ -34,8 +34,15 @@ function getChannelLabel(value: string | null): string {
   return CHANNEL_LABELS[value] ?? value;
 }
 
+const FILTER_OPTIONS: { value: PartnerFilter; label: string }[] = [
+  { value: "active",   label: "Active" },
+  { value: "inactive", label: "Deactivated" },
+  { value: "all",      label: "All" },
+];
+
 export function PartnersTable() {
-  const { partners, loading, error, createPartner, updatePartner, deletePartner } = usePartners();
+  const [filter, setFilter] = useState<PartnerFilter>("active");
+  const { partners, loading, error, createPartner, updatePartner, deletePartner } = usePartners(filter);
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<PartnerCode | null>(null);
   const [deactivateTarget, setDeactivateTarget] = useState<PartnerCode | null>(null);
@@ -74,16 +81,31 @@ export function PartnersTable() {
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
           <CardTitle className="text-base">Content Creators</CardTitle>
-          <Button
-            variant="brand"
-            size="sm"
-            onClick={() => { setEditTarget(null); setFormOpen(true); }}
-          >
-            <Plus className="h-4 w-4" />
-            Add Creator
-          </Button>
+          <div className="flex items-center gap-3">
+            {/* Filter toggle */}
+            <div className="flex rounded-md border border-border text-xs overflow-hidden">
+              {FILTER_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setFilter(value)}
+                  className={`px-3 py-1.5 transition-colors ${filter === value ? "bg-brand text-white" : "text-muted-foreground hover:bg-muted"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <Button
+              variant="brand"
+              size="sm"
+              onClick={() => { setEditTarget(null); setFormOpen(true); }}
+            >
+              <Plus className="h-4 w-4" />
+              Add Creator
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           {error && <p className="px-6 py-4 text-sm text-status-danger">{error}</p>}

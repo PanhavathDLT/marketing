@@ -12,8 +12,9 @@ export type UsageWithCustomer = PartnerCodeUsage & {
 export class PartnerRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async findAll(): Promise<PartnerCodeWithStats[]> {
+  async findAll(filter?: { isActive?: boolean }): Promise<PartnerCodeWithStats[]> {
     const rows = await this.prisma.partnerCode.findMany({
+      where: filter?.isActive !== undefined ? { isActive: filter.isActive } : undefined,
       orderBy: { createdAt: 'desc' },
       include: {
         _count: { select: { usages: true } },

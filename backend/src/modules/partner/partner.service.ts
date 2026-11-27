@@ -19,8 +19,8 @@ async function generateUniqueCode(repo: PartnerRepository): Promise<string> {
 export class PartnerService {
   constructor(private readonly repo: PartnerRepository) {}
 
-  async list() {
-    const rows = await this.repo.findAll();
+  async list(filter?: { isActive?: boolean }) {
+    const rows = await this.repo.findAll(filter);
     return rows.map((r) => ({
       id:               r.id,
       name:             r.name,
