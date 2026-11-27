@@ -111,11 +111,16 @@ export class PartnerRepository {
     return this.prisma.partnerCodeUsage.create({ data: { partnerCodeId, customerId } });
   }
 
-  createConversion(
+  async createConversion(
     partnerCodeId: number,
     customerId: number,
     eventType: string,
-  ): Promise<PartnerConversion> {
+  ): Promise<PartnerConversion | null> {
+    // One row per (partnerCodeId, customerId, eventType) — idempotent
+    const existing = await this.prisma.partnerConversion.findFirst({
+      where: { partnerCodeId, customerId, eventType },
+    });
+    if (existing) return null;
     return this.prisma.partnerConversion.create({
       data: { partnerCodeId, customerId, eventType },
     });

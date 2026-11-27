@@ -50,6 +50,21 @@ customerMissionRouter.post(
       const customerId = (req.user as AuthenticatedUser).id;
       const { missionType } = req.body as z.infer<typeof triggerSchema>;
 
+      // Record partner conversion for APPLICATION_SUBMISSION and LOAN_APPROVAL
+      // This runs regardless of whether any active mission exists for this type.
+      if (PARTNER_CONVERSION_TYPES.has(missionType)) {
+        const profile = await prisma.customerProfile.findUnique({
+          where: { userId: customerId },
+          select: { id: true },
+        });
+        if (profile) {
+          const usage = await partnerRepo.findUsageByCustomerId(profile.id);
+          if (usage) {
+            await partnerRepo.createConversion(usage.partnerCodeId, profile.id, missionType);
+          }
+        }
+      }
+
       const missions = await missionRepo.findActiveMissionsByType(missionType);
       if (missions.length === 0) {
         return success(res, { triggered: false, reason: 'no_active_mission' });
@@ -70,20 +85,6 @@ customerMissionRouter.post(
 
       if (updated.length === 0) {
         return success(res, { triggered: false, reason: 'already_completed' });
-      }
-
-      // Record partner conversion for APPLICATION_SUBMISSION and LOAN_APPROVAL
-      if (PARTNER_CONVERSION_TYPES.has(missionType)) {
-        const profile = await prisma.customerProfile.findUnique({
-          where: { userId: customerId },
-          select: { id: true },
-        });
-        if (profile) {
-          const usage = await partnerRepo.findUsageByCustomerId(profile.id);
-          if (usage) {
-            await partnerRepo.createConversion(usage.partnerCodeId, profile.id, missionType);
-          }
-        }
       }
 
       success(res, { triggered: true, missions: updated });
