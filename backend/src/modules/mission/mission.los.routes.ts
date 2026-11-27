@@ -3,10 +3,14 @@ import { z } from 'zod';
 import { validate } from '../../shared/middleware/validate.middleware.js';
 import { success } from '../../shared/utils/response.js';
 import { MissionRepository } from './mission.repository.js';
+import { PartnerRepository } from '../partner/partner.repository.js';
 import type { AuthenticatedUser } from '../../types/express.js';
 import prisma from '../../lib/prisma.js';
 
 const missionRepo = new MissionRepository(prisma);
+const partnerRepo = new PartnerRepository(prisma);
+
+const PARTNER_CONVERSION_TYPES = new Set(['APPLICATION_SUBMISSION', 'LOAN_APPROVAL']);
 
 
 // REFERRAL is excluded — referral mission progress is recorded automatically
@@ -67,6 +71,21 @@ customerMissionRouter.post(
       if (updated.length === 0) {
         return success(res, { triggered: false, reason: 'already_completed' });
       }
+
+      // Record partner conversion for APPLICATION_SUBMISSION and LOAN_APPROVAL
+      if (PARTNER_CONVERSION_TYPES.has(missionType)) {
+        const profile = await prisma.customerProfile.findUnique({
+          where: { userId: customerId },
+          select: { id: true },
+        });
+        if (profile) {
+          const usage = await partnerRepo.findUsageByCustomerId(profile.id);
+          if (usage) {
+            await partnerRepo.createConversion(usage.partnerCodeId, profile.id, missionType);
+          }
+        }
+      }
+
       success(res, { triggered: true, missions: updated });
     } catch (err) {
       next(err);

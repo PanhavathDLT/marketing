@@ -16,45 +16,63 @@ Admin opens the Partners page in the dashboard and fills in the creator's detail
 
 **Endpoint:** `POST /api/v1/admin/partners`
 
+**Option A — Auto-generate code (omit `code`):**
 ```json
 {
   "name": "Dara Influencer",
   "phone": "0961234567",
-  "channel": "TikTok",
+  "channel": "TIKTOK",
   "note": "50k followers, fintech niche"
 }
 ```
+Backend generates a unique `PC****` code (e.g. `PC4R9X`).
 
-Backend generates a unique 6-character alphanumeric `code` (e.g. `PC4R9X`) and stores a `PartnerCode` record. The code is returned in the response so admin can copy it and hand it to the creator.
+**Option B — Manual code (include `code`):**
+```json
+{
+  "name": "Dara Influencer",
+  "phone": "0961234567",
+  "channel": "TIKTOK",
+  "note": "50k followers, fintech niche",
+  "code": "DARA2026"
+}
+```
+Backend uses the provided code after checking uniqueness.
 
-**Response:**
+**Manual code rules:** 3–20 characters, uppercase letters and digits only (`A-Z`, `0-9`), must be unique.
+
+**Response `201`:**
 ```json
 {
   "id": 12,
   "name": "Dara Influencer",
   "phone": "0961234567",
-  "channel": "TikTok",
+  "channel": "TIKTOK",
   "note": "50k followers, fintech niche",
   "code": "PC4R9X",
-  "createdAt": "2026-11-26T08:00:00.000Z"
+  "isActive": true,
+  "createdAt": "2026-11-26T08:00:00.000Z",
+  "updatedAt": "2026-11-26T08:00:00.000Z"
 }
 ```
+
+The `code` is returned so admin can copy it and hand it to the creator.
 
 ---
 
 ### Step 2 — Creator shares the code
 
-The creator posts the code on social media (TikTok, Facebook, etc.). Their audience downloads the app and enters the code during onboarding.
+The creator posts the code on social media. Their audience downloads the app and enters the code during onboarding.
 
 ---
 
 ### Step 3 — Mobile user applies the code
 
-The existing `POST /customer/referral/apply` endpoint already handles peer referral codes. This endpoint must be **extended** to also check the `PartnerCode` table when the submitted code does not match any `CustomerProfile.referralCode`.
+The existing `POST /customer/referral/apply` endpoint is extended to also check the `PartnerCode` table when the submitted code does not match any `CustomerProfile.referralCode`.
 
 **Resolution order:**
 1. Look up `code` in `CustomerProfile.referralCode` → if found, process as a **peer referral** (existing logic, unchanged).
-2. If not found there, look up `code` in `PartnerCode.code` → if found, process as a **partner code application**.
+2. If not found there, look up `code` in `PartnerCode.code` (active only) → if found, process as a **partner code application**.
 3. If found in neither table → `404 Not Found`.
 
 **When a partner code is matched:**
@@ -63,7 +81,7 @@ The existing `POST /customer/referral/apply` endpoint already handles peer refer
 - Do **not** set `CustomerProfile.referredById` (that field is for peer referrals only).
 - Return the same response shape as peer referral so mobile needs no code change.
 
-**Constraint:** a customer can only apply one code total — either a peer referral code or a partner code, not both. Enforce with a check before resolving: if the customer already has `referredById` set or already has a `PartnerCodeUsage` row, return `409 Conflict`.
+**Constraint:** a customer can only apply one code total — either a peer referral code or a partner code, not both. Check before resolving: if the customer already has `referredById` set **or** already has a `PartnerCodeUsage` row, return `409 Conflict`.
 
 ---
 
@@ -73,42 +91,51 @@ When a customer who was onboarded via a partner code later submits a loan applic
 
 ```
 POST /api/v1/los/missions/complete
-Authorization: Bearer <LOS_API_KEY>
+X-Client-Id:     los-backend
+X-Client-Secret: <secret>
 
 {
-  "losUserId": "LOS-USER-891",
-  "eventType": "APPLICATION_SUBMISSION"   // or "LOAN_APPROVAL"
+  "losUserId": 891,
+  "missionType": "APPLICATION_SUBMISSION"   // or "LOAN_APPROVAL"
 }
 ```
 
-The marketing backend already resolves `losUserId → customerId` for mission tracking. In the same handler, **also check for partner attribution**:
+The handler:
+1. Resolves `losUserId` → `User.id` (auto-creates a `CustomerProfile` if the customer is not yet in the marketing DB).
+2. Triggers active missions for the given `missionType`.
+3. For `APPLICATION_SUBMISSION` and `LOAN_APPROVAL` only — queries `PartnerCodeUsage` for this customer; if a row exists, creates a `PartnerConversion` row: `{ partnerCodeId, customerId, eventType, occurredAt }`.
+4. This is append-only — APPLICATION and APPROVAL each create their own row.
 
-1. Resolve `losUserId` → `customerId` (existing logic).
-2. Query `PartnerCodeUsage` where `customerId = customerId` — if a row exists, fetch `partnerCodeId`.
-3. Create a `PartnerConversion` row: `{ partnerCodeId, customerId, eventType, occurredAt }`.
-4. This is append-only — multiple events (APPLICATION then APPROVAL) each create their own row.
-
-No new endpoint needed for this step. It is wired inside the existing LOS event handler.
+Always returns `200` — LOS flows must not break because of marketing state.
 
 ---
 
 ### Step 5 — Admin views creator performance
 
-Admin opens the Partners page, selects a creator, and sees their stats.
-
 **List all creators:**
 `GET /api/v1/admin/partners`
+
+Supports optional filter via query param:
+
+| Query | Result |
+|---|---|
+| `GET /admin/partners` | All partners (active + deactivated) |
+| `GET /admin/partners?isActive=true` | Active only |
+| `GET /admin/partners?isActive=false` | Deactivated only |
 
 ```json
 [
   {
     "id": 12,
     "name": "Dara Influencer",
-    "channel": "TikTok",
+    "phone": "0961234567",
+    "channel": "TIKTOK",
     "code": "PC4R9X",
+    "isActive": true,
     "totalUsages": 47,
     "totalConversions": 12,
-    "createdAt": "2026-11-26T08:00:00.000Z"
+    "createdAt": "2026-11-26T08:00:00.000Z",
+    "updatedAt": "2026-11-26T08:00:00.000Z"
   }
 ]
 ```
@@ -124,6 +151,8 @@ Admin opens the Partners page, selects a creator, and sees their stats.
   "id": 12,
   "name": "Dara Influencer",
   "code": "PC4R9X",
+  "channel": "TIKTOK",
+  "isActive": true,
   "usages": [
     {
       "customerId": 201,
@@ -138,29 +167,65 @@ Admin opens the Partners page, selects a creator, and sees their stats.
 
 ---
 
+## Channel Enum
+
+The `channel` field uses a predefined enum. Frontend should fetch the list dynamically:
+
+`GET /api/v1/admin/partners/channels`
+
+```json
+[
+  { "value": "TIKTOK",    "label": "TikTok" },
+  { "value": "YOUTUBE",   "label": "YouTube" },
+  { "value": "FACEBOOK",  "label": "Facebook" },
+  { "value": "INSTAGRAM", "label": "Instagram" },
+  { "value": "TELEGRAM",  "label": "Telegram" },
+  { "value": "TWITTER",   "label": "Twitter / X" },
+  { "value": "LINKEDIN",  "label": "LinkedIn" },
+  { "value": "OTHER",     "label": "Other" }
+]
+```
+
+Send the `value` (e.g. `"TIKTOK"`) in create/update requests. Display the `label` in the UI.
+
+---
+
 ## Data Model
 
 ```prisma
+enum PartnerChannel {
+  TIKTOK
+  YOUTUBE
+  FACEBOOK
+  INSTAGRAM
+  TELEGRAM
+  TWITTER
+  LINKEDIN
+  OTHER
+}
+
 model PartnerCode {
-  id          Int      @id @default(autoincrement())
-  name        String                        // creator's display name
+  id          Int            @id @default(autoincrement())
+  name        String                          // creator's display name
   phone       String?
-  channel     String?                       // e.g. "TikTok", "Facebook"
+  channel     PartnerChannel?                 // social media channel
   note        String?
-  code        String   @unique              // 6-char code, e.g. "PC4R9X"
-  createdAt   DateTime @default(now())
+  code        String         @unique          // e.g. "PC4R9X" (auto) or "DARA2026" (manual)
+  isActive    Boolean        @default(true)   // soft-delete flag
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   usages      PartnerCodeUsage[]
   conversions PartnerConversion[]
 }
 
 model PartnerCodeUsage {
-  id            Int         @id @default(autoincrement())
+  id            Int             @id @default(autoincrement())
   partnerCodeId Int
-  customerId    Int         @unique        // one code per customer; enforces 1:1
-  appliedAt     DateTime    @default(now())
+  customerId    Int             @unique        // one code per customer; enforces 1:1
+  appliedAt     DateTime        @default(now())
 
-  partnerCode   PartnerCode  @relation(fields: [partnerCodeId], references: [id])
+  partnerCode   PartnerCode     @relation(fields: [partnerCodeId], references: [id])
   customer      CustomerProfile @relation(fields: [customerId], references: [id])
 }
 
@@ -168,31 +233,32 @@ model PartnerConversion {
   id            Int         @id @default(autoincrement())
   partnerCodeId Int
   customerId    Int
-  eventType     String                     // "APPLICATION_SUBMISSION" | "LOAN_APPROVAL"
+  eventType     String      // "APPLICATION_SUBMISSION" | "LOAN_APPROVAL"
   occurredAt    DateTime    @default(now())
 
-  partnerCode   PartnerCode  @relation(fields: [partnerCodeId], references: [id])
+  partnerCode   PartnerCode @relation(fields: [partnerCodeId], references: [id])
 }
 ```
 
 The `customerId @unique` on `PartnerCodeUsage` enforces that a customer can only be attributed to one partner. Combined with the existing `referredById` check, a customer can hold at most one attribution (peer or partner).
 
+`isActive = false` on `PartnerCode` means the code is deactivated — it will not be matched when a mobile user tries to apply it, but all historical usage and conversion data is preserved.
+
 ---
 
 ## Module Structure
 
-Follow the standard module layout (`backend_project_guidelines.md`):
-
 ```
 src/modules/partner/
 ├── index.ts
-├── partner.routes.ts
+├── partner.routes.ts       — composition root + Express routes
 ├── partner.controller.ts
 ├── partner.service.ts
 └── partner.schema.ts
-```
 
-The LOS event handler lives in the existing `los` module (`src/modules/los/`). Add partner attribution logic to `los.service.ts` after the existing mission-completion logic.
+src/modules/los/
+└── los.routes.ts           — LOS server-to-server handler (missions + partner conversion)
+```
 
 ---
 
@@ -200,12 +266,13 @@ The LOS event handler lives in the existing `los` module (`src/modules/los/`). A
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/api/v1/admin/partners` | Create a creator + generate code |
-| `GET` | `/api/v1/admin/partners` | List all creators with aggregate stats |
+| `GET` | `/api/v1/admin/partners/channels` | List all valid channel options |
+| `GET` | `/api/v1/admin/partners` | List creators with stats. Optional `?isActive=true\|false` |
+| `POST` | `/api/v1/admin/partners` | Create a creator + generate or accept manual code |
 | `GET` | `/api/v1/admin/partners/:id` | Get a single creator |
-| `GET` | `/api/v1/admin/partners/:id/usages` | List all users who applied this creator's code, with conversions |
-| `PATCH` | `/api/v1/admin/partners/:id` | Update creator info (name, channel, note) |
-| `DELETE` | `/api/v1/admin/partners/:id` | Soft-delete / deactivate a creator |
+| `GET` | `/api/v1/admin/partners/:id/usages` | List all users who applied this code, with conversions |
+| `PATCH` | `/api/v1/admin/partners/:id` | Update creator info (name, phone, channel, note) |
+| `DELETE` | `/api/v1/admin/partners/:id` | Soft-deactivate (sets `isActive: false`) |
 
 ---
 
@@ -213,21 +280,35 @@ The LOS event handler lives in the existing `los` module (`src/modules/los/`). A
 
 | Method | Path | Change |
 |--------|------|--------|
-| `POST` | `/customer/referral/apply` | Extend to also resolve against `PartnerCode.code`. Response shape unchanged. |
+| `POST` | `/customer/referral/apply` | Extended to also resolve against `PartnerCode.code`. Response shape unchanged: `{ referrerName, refereeBonus }`. |
 
 ---
 
-## LOS Handler Change
+## LOS Endpoint
 
-| File | Change |
-|------|--------|
-| `src/modules/los/los.service.ts` | After resolving `losUserId → customerId`, query `PartnerCodeUsage` and insert `PartnerConversion` if a match exists. |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `POST` | `/api/v1/los/missions/complete` | `X-Client-Id` + `X-Client-Secret` | Trigger mission progress + record partner conversion |
+
+Body:
+```json
+{ "losUserId": 891, "missionType": "APPLICATION_SUBMISSION" }
+```
+
+Valid `missionType` values: `REFERRAL`, `APPLICATION_SUBMISSION`, `LOAN_APPROVAL`, `REPAYMENT`, `COMPLETE_FORM1`–`COMPLETE_FORM4`.
+
+Partner conversions are only recorded for `APPLICATION_SUBMISSION` and `LOAN_APPROVAL`.
 
 ---
 
 ## Code Generation
 
-Partner codes must be distinct from customer referral codes. Use a **`PC` prefix** (e.g. `PC4R9X`) or verify uniqueness across both tables. Recommended: generate 6 random alphanumeric characters and retry on collision (collisions will be extremely rare at expected scale).
+| Mode | Behaviour |
+|---|---|
+| Auto (no `code` in request) | Backend generates `PC` + 4 random uppercase alphanumeric chars (e.g. `PC4R9X`), retries on collision |
+| Manual (`code` in request) | Backend validates format (3–20 chars, `A-Z0-9`) and uniqueness, then saves as-is |
+
+Partner codes coexist in the same `code` column as customer referral codes. Auto-generated codes use the `PC` prefix to avoid collisions in practice, but uniqueness is enforced by the DB `@unique` constraint on both tables regardless.
 
 ---
 
@@ -236,5 +317,6 @@ Partner codes must be distinct from customer referral codes. Use a **`PC` prefix
 | Scenario | Status | Message |
 |----------|--------|---------|
 | Code not found in either table | `404` | `"Code not found"` |
+| Manual code already in use | `409` | `"This code is already in use. Please choose a different one."` |
 | Customer already has a referral or partner code applied | `409` | `"You have already applied a referral or partner code"` |
-| `losUserId` does not resolve to any customer | `404` | Existing LOS handler behaviour — no change |
+| `losUserId` not found | — | Auto-creates a `CustomerProfile` and continues |
